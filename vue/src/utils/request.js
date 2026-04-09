@@ -9,7 +9,7 @@ const request = axios.create({
 
 
 request.interceptors.request.use(function (config) {
-    config.headers['content-type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+    /*config.headers['content-type'] = 'application/x-www-form-urlencoded;charset=UTF-8'*/
 
     let user=localStorage.getItem('user')?JSON.parse(localStorage.getItem('user')):null
     // 从localStorage中获取token

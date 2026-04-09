@@ -26,14 +26,14 @@ public class WebConfig implements WebMvcConfigurer {
         * 登录拦截器
         * */
         registry.addInterceptor(loginInterceptor)
-                .excludePathPatterns("/users","/admins","/login","/order/**");
+                .excludePathPatterns("/users","/admins","/login","/object/**");
     }
     // 配置资源映射
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 映射 /order/** 到本地图片目录
-        registry.addResourceHandler("/order/**")
-                .addResourceLocations("file:"+path_name+"/src/main/resources/static/order/");
+        registry.addResourceHandler("/object/**")
+                .addResourceLocations("file:"+path_name+"/src/main/resources/static/object/");
     }
 
 }

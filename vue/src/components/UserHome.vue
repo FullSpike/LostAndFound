@@ -44,7 +44,7 @@
           <el-icon><Lock /></el-icon>
           <span>修改密码</span>
         </div>
-        <div class="nav-item" @click="handleLogout">
+        <div class="nav-item" @click="logout">
           <el-icon><SwitchButton /></el-icon>
           <span>退出登录</span>
         </div>
@@ -71,7 +71,7 @@
             <div class="info-row"><span class="label">用户名</span><span class="value">{{ userInfo.username }}</span></div>
             <div class="info-row"><span class="label">邮箱</span><span class="value">{{ userInfo.email }}</span></div>
             <div class="info-row"><span class="label">手机号</span><span class="value">{{ userInfo.phone }}</span></div>
-            <div class="info-row"><span class="label">状态</span><span class="value"><el-tag :type="userInfo.status === 'active' ? 'success' : 'danger'">{{ userInfo.status === 'active' ? '正常' : '禁用' }}</el-tag></span></div>
+            <div class="info-row"><span class="label">状态</span><span class="value"><el-tag :type="userInfo.status === '正常' ? 'success' : 'danger'">{{ userInfo.status === '正常' ? '正常' : '封禁' }}</el-tag></span></div>
           </div>
         </div>
 
@@ -224,11 +224,18 @@
             <el-form-item label="描述">
               <el-input v-model="newItem.description" type="textarea" rows="3" placeholder="物品描述..." />
             </el-form-item>
+            <div v-if="newItemType==='lost'">
+              <el-form-item label="是否置顶">
+                <el-radio-group v-model="newItem.need_top">
+                  <el-radio label="否">否</el-radio>
+                  <el-radio label="是">是</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </div>
             <el-form-item label="图片">
-              <el-upload action="#" :auto-upload="false" :show-file-list="false" :on-change="handleImageChange">
-                <el-button>上传图片</el-button>
-              </el-upload>
-              <span v-if="newItem.pathName" class="upload-tip">已上传</span>
+
+              <input type="file" @change="handleFileChange" accept="image/*" />
+              <span v-if="pathName" class="upload-tip">已上传</span>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="addNewItem">立即发布</el-button>
@@ -392,20 +399,13 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Search, TakeawayBox, Document, Collection, Plus, Message, Lock, SwitchButton, Bell, ChatDotRound, Comment } from '@element-plus/icons-vue'
 import router from "@/router/index.js";
+import request from "@/utils/request.js";
 
 // 当前用户ID
 const currentUserId = ref(1)
 
 // 用户信息
-const userInfo = ref({
-  id: 1,
-  avatar: '',
-  username: '张三',
-  password: '123456',
-  email: 'zhangsan@example.com',
-  phone: '13800138000',
-  status: 'active'
-})
+const userInfo = ref(JSON.parse(localStorage.getItem('user')))
 
 // 宿舍相关
 const dormNumber = ref('')
@@ -500,29 +500,59 @@ const currentMessages = computed(() => {
 
 // 新增物品 - 新增 phone 字段
 const newItemType = ref('lost')
-const newItem = ref({ name: '', location: '', time: '', description: '', pathName: '', phone: '' })
+const newItem = ref({ name: '', location: '', time: '', description: '',  phone: '' ,need_top:'否'})
+const pathName = ref(null)
 
-const handleImageChange = (file) => {
-  newItem.value.pathName = URL.createObjectURL(file.raw)
+//推出登录
+const logout = () => {
+  router.push('/login')
+  ElMessage.success('已退出登录')
+  localStorage.removeItem('user')
+  localStorage.removeItem('token')
+
 }
 
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    pathName.value= file
+  }
+}
+/*
+* 新增物品
+* */
 const addNewItem = () => {
-  const id = Date.now()
+  const id = userInfo.value.id
   const item = {
-    id,
     ...newItem.value,
-    status: newItemType.value === 'lost' ? '寻找中' : '待认领',
+    l_id:id,
+    status:'未找到',
     note: ''
   }
+  const formData = new FormData()
+
   if (newItemType.value === 'lost') {
     myLostList.value.push(item)
     allLostList.value.push(item)
+    try {
+      formData.append('lost', JSON.stringify(item))
+      formData.append('pathName', pathName.value)
+      request.post('/losts', formData).then(response => {
+        if (response.code === '200') {
+          ElMessage.success('发布成功')
+        } else {
+          ElMessage.error(response.data.message || '发布失败')
+        }
+      })
+    } catch (error) {
+      ElMessage.error('发布失败')
+    }
   } else {
     myFoundList.value.push(item)
     allFoundList.value.push(item)
   }
-  ElMessage.success('发布成功')
-  newItem.value = { name: '', location: '', time: '', description: '', pathName: '', phone: '' }
+  newItem.value = { name: '', location: '', time: '', description: '', pathName: '', phone: '', need_top:'否'}
 }
 
 // 弹窗相关状态
@@ -536,7 +566,17 @@ const openEditUserDialog = () => {
 
 const saveUserInfo = () => {
   Object.assign(userInfo.value, editUserForm.value)
-  ElMessage.success('资料已更新')
+  //与后端进行交互
+  request.put('/users/'+userInfo.value.id,editUserForm.value,{
+    contentType: 'application/json'
+  }).then(response => {
+    if(response.code === '200'){
+      ElMessage.success('资料已更新')
+    }else {
+      ElMessage.error(response.data.message||'更新失败')
+    }
+
+  })
   editUserDialogVisible.value = false
 }
 
@@ -691,13 +731,6 @@ const bindDorm = () => {
   }
 }
 
-// 退出登录
-const handleLogout = () => {
-
-  router.push('/login')
-  ElMessage.success('已退出登录')
-
-}
 
 // 头像上传
 const handleAvatarChange = (file) => {

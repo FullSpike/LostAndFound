@@ -3,6 +3,9 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.lostandfound.mapper.UserMapper">
+    <update id="update">
+        update user set username=#{user.username},email=#{user.email},phone=#{user.phone},password=#{user.password} where id=#{id}
+    </update>
 
     <select id="selectByUsername" resultType="org.example.lostandfound.pojo.User">
         select * from user where username=#{username}

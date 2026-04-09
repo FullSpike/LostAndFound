@@ -9,14 +9,14 @@ const routes = [
         redirect: '/login'
     },
     {
-        path: '/login',
-        name: 'login',
+        path: '/Login',
+        name: 'Login',
         component: () => import('@/components/Login.vue'),
         meta: {requiresAuth: false}
     },
     {
-        path: '/register',
-        name: 'register',
+        path: '/Register',
+        name: 'Register',
         component: () => import('@/components/Register.vue'),
         meta: {requiresAuth: false}
     },

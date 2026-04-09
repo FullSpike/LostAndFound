@@ -23,6 +23,4 @@ public class Found {
     private  String phone;
     private  String is_report;
     private  String report_reason;
-
-
 }
