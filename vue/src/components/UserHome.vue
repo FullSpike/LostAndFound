@@ -62,9 +62,11 @@
         <div class="profile-card">
           <div class="profile-avatar">
             <el-avatar :size="100" :src="userInfo.avatar || defaultAvatar" />
-            <el-upload action="#" :auto-upload="false" :show-file-list="false" :on-change="handleAvatarChange">
-              <el-button type="text" class="change-avatar-btn">更换头像</el-button>
-            </el-upload>
+            <el-form-item label="更改头像">
+
+              <input type="file" @change="handleAvatarChange" accept="image/*" />
+              <el-button type="primary" @click="uploadAvatar">上传</el-button>
+            </el-form-item>
           </div>
           <div class="profile-info">
             <div class="info-row"><span class="label">用户ID</span><span class="value">{{ userInfo.id }}</span></div>
@@ -457,12 +459,13 @@ onMounted(() => {
 
 })
 
-// 当前用户ID
-const currentUserId = ref(1)
+
 
 // 用户信息
 const userInfo = ref(JSON.parse(localStorage.getItem('user')))
 
+// 当前用户ID
+const currentUserId = ref(userInfo.value.id)
 
 // 物品数据 - 新增 phone 字段
 const allLostList = ref([])
@@ -585,7 +588,7 @@ const addNewItem = () => {
         if (response.code === '200') {
           ElMessage.success('发布成功')
         } else {
-          ElMessage.error(response.data.message || '发布失败')
+          ElMessage.error(response.msg || '发布失败')
         }
       })
     } catch (error) {
@@ -602,7 +605,7 @@ const addNewItem = () => {
         if (response.code === '200') {
           ElMessage.success('发布成功')
         } else {
-          ElMessage.error(response.data.message || '发布失败')
+          ElMessage.error(response.msg || '发布失败')
         }
       })
     }catch(error) {
@@ -630,7 +633,7 @@ const saveUserInfo = () => {
     if(response.code === '200'){
       ElMessage.success('资料已更新')
     }else {
-      ElMessage.error(response.data.message||'更新失败')
+      ElMessage.error(response.msg||'更新失败')
     }
 
   })
@@ -671,7 +674,7 @@ const submitNote = () => {
         if(response.code === '200'){
           ElMessage.success('留言成功')
         }else {
-          ElMessage.error(response.data.message||'留言失败')
+          ElMessage.error(response.msg||'留言失败')
         }
       })
     }catch(error) {
@@ -704,7 +707,7 @@ const submitReport = () => {
       if(response.code === '200'){
         ElMessage.success('举报成功')
       }else {
-        ElMessage.error(response.data.message||'举报失败')
+        ElMessage.error(response.msg||'举报失败')
       }
     })
   }catch(error) {
@@ -799,21 +802,78 @@ const openChangePasswordDialog = () => {
   changePwdDialogVisible.value = true
 }
 
-const changePassword = () => {
+
+const changePassword = async () => {
+
+  const params1 = new URLSearchParams()
+  params1.append('password',pwdForm.value.oldPwd)
+  const response0 = await request.post('/users/'+currentUserId.value+'/password',params1)
+  if(response0.code !== '200'){
+    ElMessage.error(response0.msg||'旧密码错误')
+    return
+  }
+
+  if(!pwdForm.value.newPwd || !pwdForm.value.confirmPwd){
+    ElMessage.error('请输入新密码')
+    return
+  }
   if (pwdForm.value.newPwd !== pwdForm.value.confirmPwd) {
     ElMessage.error('两次密码不一致')
     return
   }
-  ElMessage.success('密码修改成功')
+
+  const params = new URLSearchParams()
+  params.append('password',pwdForm.value.newPwd)
+  const response = await request.put('/users/'+currentUserId.value+'/password',params)
+  if(response.code === '200'){
+    ElMessage.success('密码修改成功')
+  }else {
+    ElMessage.error(response.msg||'密码修改失败')
+  }
+
+
+
+
+  /*request.put('/users/'+currentUserId.value+'/password',params).then(response => {
+    if(response.code === '200'){
+      ElMessage.success('密码修改成功')
+    }else {
+      ElMessage.error(response.data.message||'密码修改失败')
+    }
+  }).catch(error => {
+    ElMessage.error('网络错误')
+  })*/
+
+
+
   changePwdDialogVisible.value = false
 }
 
 
 
+const avatarFile = ref(null)
 // 头像上传
-const handleAvatarChange = (file) => {
-  userInfo.value.avatar = URL.createObjectURL(file.raw)
-  ElMessage.success('头像已更新')
+const handleAvatarChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    avatarFile.value = file
+  }
+
+}
+
+const uploadAvatar = () => {
+  const formData = new FormData()
+  formData.append('avatar',avatarFile.value)
+  request.put('/users/'+currentUserId.value+'/avatar',formData).then(response => {
+    if(response.code === '200'){
+      ElMessage.success('头像已更新')
+      userInfo.value.avatar=response.data
+    }else {
+      ElMessage.error(response.msg||'头像更新失败')
+    }
+  }).catch(error => {
+    ElMessage.error('网络错误')
+  })
 }
 </script>
 
