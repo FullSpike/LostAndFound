@@ -9,4 +9,8 @@
         values (#{lost.name},#{lost.location},#{lost.time},#{lost.description},#{pathName},
                 #{lost.status},#{lost.note},#{lost.l_id},#{lost.phone},#{lost.is_report},#{lost.need_top})
     </insert>
+
+    <update id="reportLost">
+        update lost set is_report=#{is_report},report_reason=#{report_reason} where id=#{id}
+    </update>
 </mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.lostandfound.mapper.FoundMapper">
+
+    <insert id="addFound">
+        insert into found (name,location,time,description,pathName,status,note,f_id,phone,is_report)
+        values (#{found.name},#{found.location},#{found.time},#{found.description},#{pathName},
+                #{found.status},#{found.note},#{found.f_id},#{found.phone},#{found.is_report})
+    </insert>
+</mapper>

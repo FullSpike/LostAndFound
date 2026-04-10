@@ -395,11 +395,67 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Search, TakeawayBox, Document, Collection, Plus, Message, Lock, SwitchButton, Bell, ChatDotRound, Comment } from '@element-plus/icons-vue'
 import router from "@/router/index.js";
 import request from "@/utils/request.js";
+
+onMounted(() => {
+  //初始化列表，并将置顶物品添加到列表顶部
+  let topLostList=([])
+  let lostList=([])
+  let foundList=([])
+  try {
+    request.get('/losts').then(response => {
+      if(response.code === '200'){
+        lostList = response.data
+        allLostList.value=allLostList.value.concat(lostList)
+      }
+    })
+    request.get('/losts/top').then(response => {
+      if(response.code === '200'){
+        topLostList= response.data
+        allLostList.value=allLostList.value.concat(topLostList)
+      }
+    })
+
+    request.get('/founds').then(response => {
+      if(response.code === '200'){
+        foundList= response.data
+        allFoundList.value = [...foundList]
+      }
+    })
+
+  }catch(err) {
+    ElMessage.error('初始化失败')
+  }
+
+  //初始化我的失物列表
+  const userId=userInfo.value.id
+
+  let myLostList0=([])
+  let myFoundList0=([])
+
+  try {
+    request.get('/losts/'+userId).then(response => {
+      if(response.code === '200'){
+        myLostList0= response.data
+        myLostList.value = [...myLostList0]
+      }
+    })
+    request.get('/founds/'+userId).then(response => {
+      if(response.code === '200'){
+        myFoundList0= response.data
+        myFoundList.value = [...myFoundList0]
+      }
+    })
+
+  }catch(err) {
+    ElMessage.error('初始化失败')
+  }
+
+})
 
 // 当前用户ID
 const currentUserId = ref(1)
@@ -407,28 +463,15 @@ const currentUserId = ref(1)
 // 用户信息
 const userInfo = ref(JSON.parse(localStorage.getItem('user')))
 
-// 宿舍相关
-const dormNumber = ref('')
-const currentDorm = ref('744')
 
 // 物品数据 - 新增 phone 字段
-const allLostList = ref([
-  { id: 1, name: '笔记本电脑', location: '图书馆', time: '2025-03-01', pathName: '', description: '银色MacBook Pro', status: '寻找中', note: '', phone: '13800138001' },
-  { id: 2, name: '校园卡', location: '二食堂', time: '2025-03-10', pathName: '', description: '姓名：张三，学号2024001', status: '寻找中', note: '', phone: '13800138002' }
-])
+const allLostList = ref([])
 
-const allFoundList = ref([
-  { id: 1, name: '手机', location: '体育馆', time: '2025-03-05', pathName: '', description: '黑色iPhone 14', status: '待认领', note: '', phone: '13800138003' },
-  { id: 2, name: '钱包', location: '教学楼A座', time: '2025-03-12', pathName: '', description: '棕色短款钱包', status: '待认领', note: '', phone: '13800138004' }
-])
+const allFoundList = ref([])
 
-const myLostList = ref([
-  { id: 3, name: '耳机', location: '健身房', time: '2025-03-08', pathName: '', description: '白色AirPods', status: '寻找中', note: '', phone: '13800138005' }
-])
+const myLostList = ref([])
 
-const myFoundList = ref([
-  { id: 3, name: '水杯', location: '咖啡厅', time: '2025-03-09', pathName: '', description: '保温杯，黑色', status: '待认领', note: '', phone: '13800138006' }
-])
+const myFoundList = ref([])
 
 // 消息
 const messageList = ref([
@@ -526,7 +569,6 @@ const addNewItem = () => {
   const id = userInfo.value.id
   const item = {
     ...newItem.value,
-    l_id:id,
     status:'未找到',
     note: ''
   }
@@ -536,6 +578,7 @@ const addNewItem = () => {
     myLostList.value.push(item)
     allLostList.value.push(item)
     try {
+      item.l_id = id
       formData.append('lost', JSON.stringify(item))
       formData.append('pathName', pathName.value)
       request.post('/losts', formData).then(response => {
@@ -551,6 +594,20 @@ const addNewItem = () => {
   } else {
     myFoundList.value.push(item)
     allFoundList.value.push(item)
+    try {
+      item.f_id = id
+      formData.append('found', JSON.stringify(item))
+      formData.append('pathName', pathName.value)
+      request.post('/founds', formData).then(response => {
+        if (response.code === '200') {
+          ElMessage.success('发布成功')
+        } else {
+          ElMessage.error(response.data.message || '发布失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('发布失败')
+    }
   }
   newItem.value = { name: '', location: '', time: '', description: '', pathName: '', phone: '', need_top:'否'}
 }
@@ -588,6 +645,8 @@ const openDetailDialog = (type, row) => {
   detailDialogVisible.value = true
 }
 
+
+// 留言物品弹窗
 const noteDialogVisible = ref(false)
 const noteContent = ref('')
 let currentNoteItem = null
@@ -605,11 +664,27 @@ const submitNote = () => {
       id: Date.now(),
       content: `您的物品(${currentNoteItem.name})有留言消息，请查收`
     })
-    ElMessage.success('留言成功')
+    try {
+      const params = new URLSearchParams()
+      params.append('note',noteContent.value)
+      request.put('/losts/'+currentNoteItem.id+'/note',params).then(response => {
+        if(response.code === '200'){
+          ElMessage.success('留言成功')
+        }else {
+          ElMessage.error(response.data.message||'留言失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('留言失败')
+    }
   }
   noteDialogVisible.value = false
 }
 
+
+/*
+* 举报物品弹窗
+* */
 const reportDialogVisible = ref(false)
 const reportReason = ref('')
 let reportTarget = null
@@ -621,7 +696,20 @@ const openReportDialog = (row) => {
 }
 
 const submitReport = () => {
-  ElMessage.success(`已举报"${reportTarget.name}"，理由：${reportReason.value}`)
+  let reportId=reportTarget.id
+  const params = new URLSearchParams()
+  params.append('report_reason',reportReason.value)
+  try {
+    request.put('/losts/'+reportId+'/report',params).then(response => {
+      if(response.code === '200'){
+        ElMessage.success('举报成功')
+      }else {
+        ElMessage.error(response.data.message||'举报失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('举报失败')
+  }
   reportDialogVisible.value = false
 }
 
@@ -720,16 +808,6 @@ const changePassword = () => {
   changePwdDialogVisible.value = false
 }
 
-// 宿舍绑定
-const bindDorm = () => {
-  if (dormNumber.value) {
-    currentDorm.value = dormNumber.value
-    ElMessage.success(`宿舍已绑定：${dormNumber.value}`)
-    dormNumber.value = ''
-  } else {
-    ElMessage.warning('请输入房间号')
-  }
-}
 
 
 // 头像上传

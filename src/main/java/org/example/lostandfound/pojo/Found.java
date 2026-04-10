@@ -18,7 +18,7 @@ public class Found {
     private String description;
     private String pathName;
     private String status;
-    private String node;
+    private String note;
     private int f_id;
     private  String phone;
     private  String is_report;

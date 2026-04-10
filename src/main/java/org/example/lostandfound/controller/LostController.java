@@ -32,6 +32,45 @@ public class LostController {
 
     }
 
+    @GetMapping()
+    public Result<?> getLostList(){
+
+        return Result.success(lostService.getLostList());
+    }
+
+    @GetMapping("/top")
+    public Result<?> getTopLostList(){
+
+        return Result.success(lostService.getTopLostList());
+    }
+
+
+    @GetMapping("/{l_id}")
+    public Result<?> getMyLostList(@PathVariable("l_id") int l_id){
+        return Result.success(lostService.getMyLostList(l_id));
+    }
+
+    /*
+    * 举报物品
+    */
+    @PutMapping("/{id}/report")
+    public Result<?> reportLost(@PathVariable("id") int id,
+                                @RequestParam("report_reason") String report_reason){
+        lostService.reportLost(id,report_reason);
+        return Result.success("举报成功");
+    }
+
+    /*
+    * 留言物品
+    * */
+    @PutMapping("/{id}/note")
+    public Result<?> noteLost(@PathVariable("id") int id,
+                                @RequestParam("note") String note){
+        lostService.noteLost(id,note);
+        return Result.success("留言成功");
+    }
+
+
 
 
 }
