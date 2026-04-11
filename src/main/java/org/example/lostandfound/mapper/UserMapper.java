@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.example.lostandfound.pojo.User;
 
+import java.util.List;
+
 public interface UserMapper {
 
 
@@ -24,4 +26,7 @@ public interface UserMapper {
     void updateAvatar( @Param("id") int id, @Param("avatar") String avatar);
 
     void insert(@Param("user") User user);
+
+    @Select("select * from user where id != #{id}")
+    List<User> selectChatUsers( @Param("id") int id);
 }

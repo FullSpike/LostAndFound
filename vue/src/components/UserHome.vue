@@ -258,7 +258,7 @@
         <div class="message-container">
           <div class="message-sidebar">
             <div class="msg-tab" :class="{ active: msgActiveTab === 'note' }" @click="msgActiveTab = 'note'">
-              <el-icon><Comment /></el-icon> 留言消息
+              <el-icon><Comment /></el-icon> 留言和聊天未读消息
             </div>
             <div class="msg-tab" :class="{ active: msgActiveTab === 'chat' }" @click="msgActiveTab = 'chat'">
               <el-icon><ChatDotRound /></el-icon> 聊天消息
@@ -414,26 +414,26 @@ import { User, Search, TakeawayBox, Document, Collection, Plus, Message, Lock, S
 import router from "@/router/index.js";
 import request from "@/utils/request.js";
 
-onMounted(() => {
+onMounted(async () => {
   //初始化列表，并将置顶物品添加到列表顶部
   let topLostList=([])
   let lostList=([])
   let foundList=([])
   try {
-    request.get('/losts').then(response => {
+    await request.get('/losts').then(response => {
       if(response.code === '200'){
         lostList = response.data
         allLostList.value=allLostList.value.concat(lostList)
       }
     })
-    request.get('/losts/top').then(response => {
+    await request.get('/losts/top').then(response => {
       if(response.code === '200'){
         topLostList= response.data
         allLostList.value=allLostList.value.concat(topLostList)
       }
     })
 
-    request.get('/founds').then(response => {
+    await request.get('/founds').then(response => {
       if(response.code === '200'){
         foundList= response.data
         allFoundList.value = [...foundList]
@@ -451,24 +451,80 @@ onMounted(() => {
   let myFoundList0=([])
 
   try {
-    request.get('/losts/'+userId).then(response => {
+    await request.get('/losts/'+userId).then(response => {
       if(response.code === '200'){
         myLostList0= response.data
         myLostList.value = [...myLostList0]
       }
     })
-    request.get('/founds/'+userId).then(response => {
+    await request.get('/founds/'+userId).then(response => {
       if(response.code === '200'){
         myFoundList0= response.data
         myFoundList.value = [...myFoundList0]
       }
     })
 
-  }catch(err) {
+  }catch(error) {
     ElMessage.error('初始化失败')
   }
 
+  //初始化聊天用户
+  try {
+    request.get('/users/' + userId + '/chatUsers').then(response => {
+      if (response.code === '200') {
+        otherUsers.value = response.data
+      }
+    })
+  } catch (e) {
+    ElMessage.error('初始化失败')
+   }
+
+
+  //初始化消息列表
+  let myMessageList = ([])
+
+  try {
+    await request.get('/messages/'+userId).then(response => {
+      if(response.code === '200'){
+        myMessageList= response.data
+      }
+    })
+  }catch(error) {
+    ElMessage.error('初始化失败')
+   }
+
+   for (const msg of myMessageList) {
+      if(msg.is_read === '否'){
+        messageList.value.push({
+          id:unreadCount.value++,
+          content:'您有消息来自_'+msg.username+'_未读，请查收'
+        })
+      }
+
+   }
+
+  myLostList.value.forEach((item,index)=>{
+    if(item.note){
+      messageList.value.push({
+        id:unreadCount.value++,
+        content:'您的失物_'+item.name+'_有留言，请查收'
+      })
+    }
+  })
+  myFoundList.value.forEach((item,index)=>{
+    if(item.note){
+      messageList.value.push({
+        id:unreadCount.value++,
+        content:'您的拾取物_'+item.name+'_有留言，请查收'
+      })
+    }
+  })
+
+
+
 })
+
+
 
 let openImagePreview = ref(false)
 let previewimgurl = ref('')
@@ -489,22 +545,13 @@ const myLostList = ref([])
 const myFoundList = ref([])
 
 // 消息
-const messageList = ref([
-  { id: 1, content: '您的物品(笔记本电脑)有留言消息，请查收' },
-  { id: 2, content: '您有未读消息来自李四，请查收' }
-])
-const unreadCount = ref(2)
+const messageList = ref([])
+const unreadCount = ref(0)
 
 // 聊天用户
-const otherUsers = ref([
-  { id: 2, username: '李四', avatar: '' },
-  { id: 3, username: '王五', avatar: '' }
-])
+const otherUsers = ref([])
 
-const chatMessages = ref({
-  2: [{ senderId: 2, content: '你好，请问笔记本还在吗？' }],
-  3: [{ senderId: 3, content: '我捡到了一个水杯' }]
-})
+const chatMessages = ref([])
 
 // UI状态
 const activeTab = ref('profile')
@@ -550,11 +597,11 @@ const filteredFoundList = computed(() => {
   return list
 })
 
-// 当前聊天消息
+/*// 当前聊天消息
 const currentMessages = computed(() => {
   if (!currentChatUser.value) return []
   return chatMessages.value[currentChatUser.value.id] || []
-})
+})*/
 
 // 新增物品 - 新增 phone 字段
 const newItemType = ref('lost')
@@ -897,26 +944,59 @@ const saveItemEdit = () => {
 // 聊天相关
 const currentChatUser = ref(null)
 const newMessage = ref('')
+const currentMessages = ref([])
 
 const selectChatUser = (user) => {
   currentChatUser.value = user
-  if (!chatMessages.value[user.id]) {
+  /*if (!chatMessages.value[user.id]) {
     chatMessages.value[user.id] = []
+  }*/
+
+  //刷新对话未读消息
+  try {
+    request.put('/messages/'+currentUserId.value+'/'+currentChatUser.value.id).then(response => {
+      if(response.code !== '200'){
+        ElMessage.error(response.msg||'刷新失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('网络错误')
+  }
+
+
+  //刷新对话信息
+  currentMessages.value = []
+  try {
+    request.get('/messages/'+currentUserId.value+'/'+currentChatUser.value.id).then(response => {
+      if(response.code === '200'){
+        currentMessages.value = response.data
+      }else {
+        ElMessage.error(response.msg||'获取消息失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('网络错误')
   }
 }
 
 const sendMessage = () => {
-  if (!newMessage.value.trim() || !currentChatUser.value) return
-  const msg = { senderId: currentUserId.value, content: newMessage.value }
-  chatMessages.value[currentChatUser.value.id].push(msg)
-  // 模拟回复
-  setTimeout(() => {
-    const reply = {
-      senderId: currentChatUser.value.id,
-      content: '收到你的消息了'
-    }
-    chatMessages.value[currentChatUser.value.id].push(reply)
-  }, 500)
+  /*if (!newMessage.value.trim() || !currentChatUser.value) return*/
+  const msg = { senderId: currentUserId.value, receiverId: currentChatUser.value.id, content: newMessage.value }
+  currentMessages.value.push(msg)
+
+  // 发送消息到后端
+  try {
+    request.post('/messages/' + currentUserId.value + '/' + currentChatUser.value.id, msg).then(response => {
+      if (response.code === '200') {
+        ElMessage.success('发送成功')
+      } else {
+        ElMessage.error(response.msg || '发送失败')
+      }
+    })
+  } catch (e) {
+    ElMessage.error('网络错误')
+  }
+
   newMessage.value = ''
 }
 

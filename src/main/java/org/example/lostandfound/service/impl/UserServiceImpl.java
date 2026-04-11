@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -88,5 +89,15 @@ public class UserServiceImpl implements UserService {
         user.setPassword(Md5Util.getMD5String(user.getPassword()));
         user.setStatus("正常");
         userMapper.insert(user);
+    }
+
+    @Override
+    public List<User> getChatUsers(int id) {
+        return userMapper.selectChatUsers(id);
+    }
+
+    @Override
+    public User getUserInfo(int id) {
+        return userMapper.selectById(id);
     }
 }

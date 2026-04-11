@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.lostandfound.mapper.MessageMapper">
+
+    <select id="selectByUserId1AndUserId2" resultType="org.example.lostandfound.pojo.Message">
+        select * from message where (senderId = #{userId1} and receiverId = #{userId2})
+        or (senderId = #{userId2} and receiverId = #{userId1})
+
+    </select>
+
+
+    <select id="selectByReceiverId" resultType="java.util.HashMap">
+        SELECT message.*,user.username FROM message,user WHERE message.receiverId = #{receiverId}
+               and user.id = message.senderId
+
+    </select>
+
+
+</mapper>

@@ -55,4 +55,14 @@ public class UserController {
         return Result.success(userService.updateAvatar(id,avatar));
     }
 
+    @GetMapping("/{id}/chatUsers")
+    public Result<?> getChatUsers(@PathVariable int id){
+        return Result.success(userService.getChatUsers(id));
+    }
+
+    @GetMapping("/{id}")
+    public Result<?> getUserInfo(@PathVariable int id){
+        return Result.success(userService.getUserInfo(id));
+    }
+
 }
