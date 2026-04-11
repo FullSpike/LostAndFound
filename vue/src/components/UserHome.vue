@@ -96,7 +96,8 @@
         <div class="item-grid">
           <div v-for="item in filteredLostList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -130,7 +131,8 @@
         <div class="item-grid">
           <div v-for="item in filteredFoundList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -156,7 +158,8 @@
         <div class="item-grid">
           <div v-for="item in myLostList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -182,7 +185,8 @@
         <div class="item-grid">
           <div v-for="item in myFoundList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -313,6 +317,13 @@
         <el-button @click="editUserDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="saveUserInfo">保存</el-button>
       </template>
+    </el-dialog>
+
+    <!-- 图片预览弹窗 -->
+    <el-dialog v-model="openImagePreview" title="图片预览" width="600px">
+      <div class="image-preview">
+        <img :src="previewimgurl" alt="预览图片" style="width: 100%" />
+      </div>
     </el-dialog>
 
     <!-- 详情弹窗 - 新增联系电话显示 -->
@@ -459,7 +470,8 @@ onMounted(() => {
 
 })
 
-
+let openImagePreview = ref(false)
+let previewimgurl = ref('')
 
 // 用户信息
 const userInfo = ref(JSON.parse(localStorage.getItem('user')))
