@@ -14,4 +14,6 @@ public interface UserService {
     void updatePassword(int id, String password);
 
     String updateAvatar(int id, MultipartFile avatar);
+
+    void register(User user);
 }

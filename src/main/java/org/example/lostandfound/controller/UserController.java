@@ -19,6 +19,12 @@ public class UserController {
     @Resource
     public UserService userService;
 
+    @PostMapping()
+    public Result<?> register(@Validated @RequestBody User user){
+        userService.register(user);
+        return Result.success("注册成功");
+    }
+
     @PutMapping("/{id}")
     public Result<?> updateUser(@PathVariable int id,
                                 @Validated @RequestBody User user){

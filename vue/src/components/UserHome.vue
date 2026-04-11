@@ -1002,7 +1002,7 @@ const uploadAvatar = () => {
 .user-home {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+  background: linear-gradient(135deg, #f5faf7 0%, #f1f0f5 100%);
 }
 
 .sidebar {

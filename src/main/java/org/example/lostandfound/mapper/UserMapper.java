@@ -22,4 +22,6 @@ public interface UserMapper {
 
     @Update("update user set avatar=#{avatar} where id=#{id}")
     void updateAvatar( @Param("id") int id, @Param("avatar") String avatar);
+
+    void insert(@Param("user") User user);
 }

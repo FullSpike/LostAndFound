@@ -3,6 +3,12 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.lostandfound.mapper.UserMapper">
+
+    <insert id="insert">
+    insert into user (username,email,phone,password,status)
+        values (#{user.username},#{user.email},#{user.phone},#{user.password},#{user.status})
+    </insert>
+
     <update id="update">
         update user set username=#{user.username},email=#{user.email},phone=#{user.phone},password=#{user.password} where id=#{id}
     </update>

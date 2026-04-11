@@ -31,7 +31,8 @@ public class WebController {
 
     @PostMapping("/login")
     public Result<?> login(@RequestParam("emailOrPhone")String emailOrPhone,
-                           @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$")String password){
+                           @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$")String password,
+                           @RequestParam("userType")String userType){
 
         //判断是否是邮箱
         if(emailOrPhone.endsWith(".com")){
@@ -39,7 +40,7 @@ public class WebController {
             if(userMapper.selectByEmail(email)==null&&adminMapper.selectByEmail(email)==null){
                 return Result.error("用户或管理员不存在","404");
             }
-            if(userMapper.selectByEmail(email)!=null){
+            if(userMapper.selectByEmail(email)!=null&&userType.equals("user")){
                 User user=userMapper.selectByEmail(email);
                 if(!Md5Util.getMD5String(password).equals(user.getPassword())){
                     return Result.error("密码错误","400");
@@ -47,7 +48,7 @@ public class WebController {
                 User user1=userLogin(user);
                 return Result.success(user1);
             }
-            if(adminMapper.selectByEmail(email)!=null){
+            if(adminMapper.selectByEmail(email)!=null&&userType.equals("admin")){
                 Admin admin=adminMapper.selectByEmail(email);
                 if(!Md5Util.getMD5String(password).equals(admin.getPassword())){
                     return Result.error("密码错误","400");
@@ -61,7 +62,7 @@ public class WebController {
                 return Result.error("用户或管理员不存在","404");
             }
 
-            if(userMapper.selectByPhone(phone)!=null){
+            if(userMapper.selectByPhone(phone)!=null&&userType.equals("user")){
                 User user=userMapper.selectByPhone(phone);
                 if(!Md5Util.getMD5String(password).equals(user.getPassword())){
                     return Result.error("密码错误","400");
@@ -70,7 +71,7 @@ public class WebController {
                 return Result.success(user1);
             }
 
-            if(adminMapper.selectByPhone(phone)!=null){
+            if(adminMapper.selectByPhone(phone)!=null&&userType.equals("admin")){
                 Admin admin=adminMapper.selectByPhone(phone);
                 if(!Md5Util.getMD5String(password).equals(admin.getPassword())){
                     return Result.error("密码错误","400");

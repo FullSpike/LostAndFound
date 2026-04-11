@@ -20,7 +20,7 @@
           <el-button type="info" @click="$router.push('/Register')">注册</el-button>
         </el-form-item>
       </el-form>
-      <p>默认测试账号：3125000000 / AB123456</p>
+      <p>默认测试账号：11@162.com / AB261216</p>
     </div>
   </div>
 </template>
@@ -60,6 +60,7 @@ export default {
         const params = new URLSearchParams()
         params.append('emailOrPhone', this.number)
         params.append('password', this.password)
+        params.append('userType', this.userType)
 
         const response = await axios.post('http://localhost:8081/login', params, {
           headers: {
@@ -80,7 +81,7 @@ export default {
             }else{
               ElMessage.error('账户已被封禁')
             }
-          }else if(this.userType === 'admin'&&!'status' in response.data.data){
+          }else if(this.userType === 'admin'&&!('status' in response.data.data)){
             this.$router.push('/adminHome')
             ElMessage.success('登录成功！')
           }else{

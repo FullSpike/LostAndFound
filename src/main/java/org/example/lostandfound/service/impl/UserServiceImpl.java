@@ -73,4 +73,20 @@ public class UserServiceImpl implements UserService {
                 avatarPath);
         return avatarPath;
     }
+
+    @Override
+    public void register(User user) {
+        if(user==null){
+            throw new ServiceException("用户为空","400");
+        }
+        if(userMapper.selectByEmail(user.getEmail())!=null){
+            throw new ServiceException("邮箱已存在","400");
+        }
+        if(userMapper.selectByPhone(user.getPhone())!=null){
+            throw new ServiceException("手机号已存在","400");
+        }
+        user.setPassword(Md5Util.getMD5String(user.getPassword()));
+        user.setStatus("正常");
+        userMapper.insert(user);
+    }
 }
