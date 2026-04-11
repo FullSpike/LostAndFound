@@ -70,6 +70,24 @@ public class LostController {
         return Result.success("留言成功");
     }
 
+    /*
+    * 删除物品
+    * */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteLost(@PathVariable("id") int id) {
+        lostService.deleteLost(id);
+        return Result.success("删除成功");
+    }
+
+    /*
+    * 修改物品
+    * */
+    @PutMapping("/{id}")
+    public Result<?> updateLost(@PathVariable("id") int id,
+                                @RequestBody Lost lost){
+        lostService.updateLost(id,lost);
+        return Result.success("修改成功");
+    }
 
 
 

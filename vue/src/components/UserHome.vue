@@ -106,7 +106,7 @@
               <p class="time">🕒 {{ item.time }}</p>
               <div class="item-actions">
                 <el-button link type="primary" @click="openDetailDialog('lost', item)">详情</el-button>
-                <el-button link type="warning" @click="openReportDialog(item)">举报</el-button>
+                <el-button link type="warning" @click="openReportDialog('lost',item)">举报</el-button>
                 <el-button link type="success" @click="openNoteDialog('lost', item)">留言</el-button>
               </div>
             </div>
@@ -140,7 +140,7 @@
               <p class="time">🕒 {{ item.time }}</p>
               <div class="item-actions">
                 <el-button link type="primary" @click="openDetailDialog('found', item)">详情</el-button>
-                <el-button link type="warning" @click="openReportDialog(item)">举报</el-button>
+                <el-button link type="warning" @click="openReportDialog('found',item)">举报</el-button>
                 <el-button link type="success" @click="openNoteDialog('found', item)">留言</el-button>
               </div>
             </div>
@@ -653,34 +653,64 @@ const openDetailDialog = (type, row) => {
 const noteDialogVisible = ref(false)
 const noteContent = ref('')
 let currentNoteItem = null
+const type = ref('')
 
-const openNoteDialog = (type, row) => {
+const openNoteDialog = (itemType, row) => {
   currentNoteItem = row
   noteContent.value = ''
   noteDialogVisible.value = true
+  type.value = itemType
 }
 
 const submitNote = () => {
-  if (currentNoteItem) {
-    currentNoteItem.note = noteContent.value
-    messageList.value.unshift({
-      id: Date.now(),
-      content: `您的物品(${currentNoteItem.name})有留言消息，请查收`
-    })
-    try {
-      const params = new URLSearchParams()
-      params.append('note',noteContent.value)
-      request.put('/losts/'+currentNoteItem.id+'/note',params).then(response => {
-        if(response.code === '200'){
-          ElMessage.success('留言成功')
-        }else {
-          ElMessage.error(response.msg||'留言失败')
-        }
-      })
-    }catch(error) {
-      ElMessage.error('留言失败')
+
+    if(!currentNoteItem) {
+      ElMessage.error('请选择物品')
+      return
     }
-  }
+    if(type.value === 'lost'){
+      currentNoteItem.note = noteContent.value
+      messageList.value.unshift({
+        id: Date.now(),
+        content: `您的物品(${currentNoteItem.name})有留言消息，请查收`
+      })
+      try {
+        const params = new URLSearchParams()
+        params.append('note',noteContent.value)
+        request.put('/losts/'+currentNoteItem.id+'/note',params).then(response => {
+          if(response.code === '200'){
+            ElMessage.success('留言成功')
+          }else {
+            ElMessage.error(response.msg||'留言失败')
+          }
+        })
+      }catch(error) {
+        ElMessage.error('留言失败')
+      }
+    }else if(type.value === 'found'){
+
+      currentNoteItem.note = noteContent.value
+      try {
+        const params = new URLSearchParams()
+        params.append('note',noteContent.value)
+        request.put('/founds/'+currentNoteItem.id+'/note',params).then(response => {
+          if(response.code === '200'){
+            ElMessage.success('留言成功')
+          }else {
+            ElMessage.error(response.msg||'留言失败')
+          }
+        })
+      }catch(error) {
+        ElMessage.error('留言失败')
+      }
+
+
+    }else{
+      ElMessage.error('请选择物品类型')
+      return
+    }
+
+
   noteDialogVisible.value = false
 }
 
@@ -691,8 +721,10 @@ const submitNote = () => {
 const reportDialogVisible = ref(false)
 const reportReason = ref('')
 let reportTarget = null
+const reportItemType = ref('')
 
-const openReportDialog = (row) => {
+const openReportDialog = (itemType, row) => {
+  reportItemType.value = itemType
   reportTarget = row
   reportReason.value = ''
   reportDialogVisible.value = true
@@ -700,19 +732,43 @@ const openReportDialog = (row) => {
 
 const submitReport = () => {
   let reportId=reportTarget.id
-  const params = new URLSearchParams()
-  params.append('report_reason',reportReason.value)
-  try {
-    request.put('/losts/'+reportId+'/report',params).then(response => {
-      if(response.code === '200'){
-        ElMessage.success('举报成功')
-      }else {
-        ElMessage.error(response.msg||'举报失败')
+
+  if(reportId){
+    if(reportItemType.value === 'lost'){
+      try {
+        const params = new URLSearchParams()
+        params.append('report_reason',reportReason.value)
+        request.put('/losts/'+reportId+'/report',params).then(response => {
+          if(response.code === '200'){
+            ElMessage.success('举报成功')
+          }else {
+            ElMessage.error(response.msg||'举报失败')
+          }
+        })
+      }catch(error) {
+        ElMessage.error('举报失败')
       }
-    })
-  }catch(error) {
-    ElMessage.error('举报失败')
+    }else if(reportItemType.value === 'found'){
+      try {
+        const params = new URLSearchParams()
+        params.append('report_reason',reportReason.value)
+        request.put('/founds/'+reportId+'/report',params).then(response => {
+          if(response.code === '200'){
+            ElMessage.success('举报成功')
+          }else {
+            ElMessage.error(response.msg||'举报失败')
+          }
+        })
+      }catch(error) {
+        ElMessage.error('举报失败')
+      }
+    }else{
+      ElMessage.error('请选择物品类型')
+      return
+    }
   }
+
+
   reportDialogVisible.value = false
 }
 
@@ -738,7 +794,36 @@ const confirmDelete = () => {
     const allIdx = allFoundList.value.findIndex(i => i.id === deleteItemId)
     if (allIdx !== -1) allFoundList.value.splice(allIdx, 1)
   }
-  ElMessage.success('删除成功')
+
+  if(deleteItemType === 'lost'){
+    try {
+      request.delete('/losts/'+deleteItemId).then(response => {
+        if(response.code === '200'){
+          ElMessage.success('删除成功')
+        }else {
+          ElMessage.error(response.msg||'删除失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('删除失败')
+    }
+  }else if(deleteItemType === 'found'){
+    try {
+      request.delete('/founds/'+deleteItemId).then(response => {
+        if(response.code === '200'){
+          ElMessage.success('删除成功')
+        }else {
+          ElMessage.error(response.msg||'删除失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('删除失败')
+    }
+   }else{
+    ElMessage.error('请选择物品类型')
+    return
+  }
+
   deleteDialogVisible.value = false
 }
 
@@ -763,7 +848,37 @@ const saveItemEdit = () => {
     const all = allFoundList.value.find(i => i.id === editingItem.id)
     if (all) Object.assign(all, editItemForm.value)
   }
-  ElMessage.success('修改成功')
+
+  if(editingItemType === 'lost'){
+    try {
+      request.put('/losts/'+editingItem.id,editItemForm.value).then(response => {
+        if(response.code === '200'){
+          ElMessage.success('修改成功')
+        }else {
+          ElMessage.error(response.msg||'修改失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('修改失败')
+    }
+  }else if(editingItemType === 'found'){
+    try {
+      request.put('/founds/'+editingItem.id,editItemForm.value).then(response => {
+        if(response.code === '200'){
+          ElMessage.success('修改成功')
+        }else {
+          ElMessage.error(response.msg||'修改失败')
+        }
+      })
+    }catch(error) {
+      ElMessage.error('修改失败')
+    }
+  }else{
+    ElMessage.error('请选择物品类型')
+    return
+  }
+
+
   editItemDialogVisible.value = false
 }
 

@@ -9,4 +9,11 @@
         values (#{found.name},#{found.location},#{found.time},#{found.description},#{pathName},
                 #{found.status},#{found.note},#{found.f_id},#{found.phone},#{found.is_report})
     </insert>
+    <!-- 更新物品信息 -->
+    <update id="updateFound">
+        update found set name=#{found.name},location=#{found.location},time=#{found.time},
+                description=#{found.description},
+                status=#{found.status},note=#{found.note},phone=#{found.phone}
+        where id=#{id}
+    </update>
 </mapper>

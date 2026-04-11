@@ -13,4 +13,12 @@
     <update id="reportLost">
         update lost set is_report=#{is_report},report_reason=#{report_reason} where id=#{id}
     </update>
+
+    <!-- 更新物品信息 -->
+    <update id="updateLost">
+        update lost set name=#{lost.name},location=#{lost.location},time=#{lost.time},
+                description=#{lost.description},
+                status=#{lost.status},note=#{lost.note},phone=#{lost.phone}
+        where id=#{id}
+    </update>
 </mapper>

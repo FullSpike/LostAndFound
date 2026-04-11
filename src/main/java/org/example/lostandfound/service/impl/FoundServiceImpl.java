@@ -68,4 +68,36 @@ public class FoundServiceImpl implements FoundService {
     public List<Found> getMyFoundList(int f_id) {
         return foundMapper.getMyFoundList(f_id);
     }
+
+    @Override
+    public void noteFound(int id, String note) {
+        if(note.isEmpty()){
+            throw new ServiceException("留言内容不能为空","401");
+        }
+        foundMapper.updateNote(id,note);
+    }
+
+    @Override
+    public void reportFound(int id, String reportReason) {
+        if(reportReason.isEmpty()){
+            throw new ServiceException("举报原因不能为空","401");
+        }
+        foundMapper.updateReport(id,"是",reportReason);
+    }
+
+    @Override
+    public void deleteFound(int id) {
+        if(foundMapper.selectById(id)==null){
+            throw new ServiceException("物品不存在","401");
+        }
+        foundMapper.deleteFound(id);
+    }
+
+    @Override
+    public void updateFound(int id, Found found) {
+        if(foundMapper.selectById(id)==null){
+            throw new ServiceException("物品不存在","401");
+        }
+        foundMapper.updateFound(id,found);
+    }
 }

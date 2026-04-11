@@ -88,4 +88,20 @@ public class LostServiceImpl implements LostService {
         }
         lostMapper.noteLost(id,note);
     }
+
+    @Override
+    public void deleteLost(int id) {
+        if(lostMapper.selectById(id) == null){
+            throw new ServiceException("物品不存在","401");
+        }
+        lostMapper.deleteLost(id);
+    }
+
+    @Override
+    public void updateLost(int id, Lost lost) {
+        if(lostMapper.selectById(id) == null){
+            throw new ServiceException("物品不存在","401");
+        }
+        lostMapper.updateLost(id,lost);
+    }
 }

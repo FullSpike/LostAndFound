@@ -1,5 +1,6 @@
 package org.example.lostandfound.mapper;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
@@ -24,4 +25,12 @@ public interface LostMapper {
 
     @Update("update lost set note=#{note} where id=#{id}")
     void noteLost(@Param("id") int id, @Param("note") String note);
+
+    @Select("select * from lost where id=#{id}")
+    Lost selectById(@Param("id") int id);
+
+    @Delete("delete from lost where id=#{id}")
+    void deleteLost(@Param("id") int id);
+
+    void updateLost( @Param("id") int id, @Param("lost") Lost lost);
 }

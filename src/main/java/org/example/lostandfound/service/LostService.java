@@ -17,4 +17,8 @@ public interface LostService {
     void reportLost(int id, String reportReason);
 
     void noteLost(int id, String note);
+
+    void deleteLost(int id);
+
+    void updateLost(int id, Lost lost);
 }

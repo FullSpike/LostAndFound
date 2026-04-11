@@ -42,4 +42,42 @@ public class FoundController {
         return Result.success(foundService.getMyFoundList(f_id));
     }
 
+    /*
+     * 留言物品
+     * */
+    @PutMapping("/{id}/note")
+    public Result<?> noteLost(@PathVariable("id") int id,
+                              @RequestParam("note") String note){
+        foundService.noteFound(id,note);
+        return Result.success("留言成功");
+    }
+
+    /*
+     * 举报物品
+     */
+    @PutMapping("/{id}/report")
+    public Result<?> reportLost(@PathVariable("id") int id,
+                                @RequestParam("report_reason") String report_reason){
+        foundService.reportFound(id,report_reason);
+        return Result.success("举报成功");
+    }
+
+    /*
+     * 删除物品
+     * */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteFound(@PathVariable("id") int id) {
+        foundService.deleteFound(id);
+        return Result.success("删除成功");
+    }
+
+    /*
+     * 修改物品
+     * */
+    @PutMapping("/{id}")
+    public Result<?> updateLost(@PathVariable("id") int id,
+                                @RequestBody Found found){
+        foundService.updateFound(id,found);
+        return Result.success("修改成功");
+    }
 }
