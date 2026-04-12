@@ -1,10 +1,3 @@
-忽略多余字段
-web登录
-!('status' in response.data.data)
-chatMessages不用中转
-网络请求多
-前端请求代码可以集成
-Map<String, Object>
 
 # 第五天
 
@@ -19,3 +12,7 @@ Map<String, Object>
     我发现了一个判断语句 !'status' in response.data.data
     我发现是不是！的作用范围问题，我把它改成!('status' in response.data.data)，问题解决
     在注册接口我设置了邮箱和手机号的去重，避免重复注册。
+    在前端的网络请求有写过于冗杂，应该可以集成在一个js文件中
+    在请求message的数据中，发现在该类中没有username字段，故应该要进行多表查询，查询出username字段
+    在返回数据中，已经没办法用包装类message了故用list<Map<String, Object>>的data返回
+    这是可以在可以承载sql多表查询的数据的格式，返回给前端可以使用username字段

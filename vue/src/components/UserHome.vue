@@ -636,6 +636,14 @@ const addNewItem = () => {
   }
   const formData = new FormData()
 
+
+  // 手机号简单验证
+  const phoneRegex = /^1[3-9]\d{9}$/
+  if (!phoneRegex.test(item.phone)) {
+    ElMessage.error('请输入正确的11位手机号码')
+    return
+  }
+
   if (newItemType.value === 'lost') {
     myLostList.value.push(item)
     allLostList.value.push(item)
@@ -647,7 +655,7 @@ const addNewItem = () => {
         if (response.code === '200') {
           ElMessage.success('发布成功')
         } else {
-          ElMessage.error(response.msg || '发布失败')
+          ElMessage.error('发布失败')
         }
       })
     } catch (error) {
@@ -664,7 +672,7 @@ const addNewItem = () => {
         if (response.code === '200') {
           ElMessage.success('发布成功')
         } else {
-          ElMessage.error(response.msg || '发布失败')
+          ElMessage.error('发布失败')
         }
       })
     }catch(error) {

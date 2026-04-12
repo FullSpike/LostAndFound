@@ -46,7 +46,7 @@ public class FoundServiceImpl implements FoundService {
         String description;
         try {
             if(found.getDescription().isEmpty()){
-                description="请给"+found.getName()+"添加描述,比如该物品为校园卡，可能⽤于校园⾝份认证或消费，请尽快联系失主。在15字以内";
+                description="请给"+found.getName()+"添加外观上的描述，请尽快联系失主。在15字以内";
             }else{
                 description=found.getName()+"存在描述"+found.getDescription()+",请给添加在外观上的更详细的描述，,在15字以内";
             }

@@ -48,7 +48,7 @@ public class LostServiceImpl implements LostService {
         String description;
         try {
             if(lost.getDescription().isEmpty()){
-                description="请给"+lost.getName()+"添加描述,比如该物品为校园卡，可能⽤于校园⾝份认证或消费，请尽快联系失主。在15字以内";
+                description="请给"+lost.getName()+"添加外观上描述，请尽快联系失主。在15字以内";
             }else{
                 description=lost.getName()+"存在描述"+lost.getDescription()+",请给添加在外观上的更详细的描述，,在15字以内";
             }
