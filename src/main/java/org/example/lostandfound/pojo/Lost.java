@@ -26,6 +26,6 @@ public class Lost {
     private  String is_report;
     private  String report_reason;
     private  String need_top;
-
+    private  String is_top;
 
 }

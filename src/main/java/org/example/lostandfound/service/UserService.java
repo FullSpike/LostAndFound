@@ -22,4 +22,8 @@ public interface UserService {
     List<User> getChatUsers(int id);
 
     User getUserInfo(int id);
+
+    List<User> getAllUsers();
+
+    void toggleUserStatus(int id);
 }

@@ -83,8 +83,8 @@
           <div class="filter-bar">
             <el-select v-model="userStatusFilter" placeholder="状态筛选" clearable style="width: 120px">
               <el-option label="全部" value="" />
-              <el-option label="正常" value="active" />
-              <el-option label="封禁" value="banned" />
+              <el-option label="正常" value="正常" />
+              <el-option label="封禁" value="封禁" />
             </el-select>
           </div>
         </div>
@@ -101,15 +101,15 @@
             <el-table-column prop="phone" label="电话" />
             <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
-                <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
-                  {{ row.status === 'active' ? '正常' : '封禁' }}
+                <el-tag :type="row.status === '正常' ? 'success' : 'danger'">
+                  {{ row.status === '正常' ? '正常' : '封禁' }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="{ row }">
                 <el-button
-                    v-if="row.status === 'banned'"
+                    v-if="row.status === '封禁'"
                     type="success"
                     size="small"
                     @click="toggleUserStatus(row)"
@@ -133,10 +133,10 @@
           <div class="filter-bar">
             <el-input v-model="lostFilters.search" placeholder="按名称搜索" clearable prefix-icon="Search" style="width: 160px" />
             <el-input v-model="lostFilters.location" placeholder="按地点筛选" clearable style="width: 160px" />
-            <el-select v-model="lostFilters.isReport" placeholder="是否被举报" clearable style="width: 130px">
+            <el-select v-model="lostFilters.is_report" placeholder="是否被举报" clearable style="width: 130px">
               <el-option label="全部" value="" />
-              <el-option label="已举报" value="true" />
-              <el-option label="未举报" value="false" />
+              <el-option label="已举报" value="是" />
+              <el-option label="未举报" value="否" />
             </el-select>
             <el-select v-model="lostFilters.sort" placeholder="时间排序" clearable style="width: 130px">
               <el-option label="最新优先" value="desc" />
@@ -147,7 +147,8 @@
         <div class="item-grid">
           <div v-for="item in filteredLostList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -155,8 +156,8 @@
               <h4>{{ item.name }}</h4>
               <p class="location">📍 {{ item.location }}</p>
               <p class="time">🕒 {{ item.time }}</p>
-              <div class="report-badge" :class="{ reported: item.isReport }">
-                {{ item.isReport ? '⚠️ 已举报' : '✓ 未举报' }}
+              <div class="report-badge" :class="{ reported: item.is_report === '是' }">
+                {{ item.is_report === '是' ? '⚠️ 已举报' : '✓ 未举报' }}
               </div>
               <div class="item-actions">
                 <el-button link type="primary" @click="openDetailDialog('lost', item)">详情</el-button>
@@ -174,10 +175,10 @@
           <div class="filter-bar">
             <el-input v-model="foundFilters.search" placeholder="按名称搜索" clearable prefix-icon="Search" style="width: 160px" />
             <el-input v-model="foundFilters.location" placeholder="按地点筛选" clearable style="width: 160px" />
-            <el-select v-model="foundFilters.isReport" placeholder="是否被举报" clearable style="width: 130px">
+            <el-select v-model="foundFilters.is_report" placeholder="是否被举报" clearable style="width: 130px">
               <el-option label="全部" value="" />
-              <el-option label="已举报" value="true" />
-              <el-option label="未举报" value="false" />
+              <el-option label="已举报" value="是" />
+              <el-option label="未举报" value="否" />
             </el-select>
             <el-select v-model="foundFilters.sort" placeholder="时间排序" clearable style="width: 130px">
               <el-option label="最新优先" value="desc" />
@@ -188,7 +189,8 @@
         <div class="item-grid">
           <div v-for="item in filteredFoundList" :key="item.id" class="item-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -196,8 +198,8 @@
               <h4>{{ item.name }}</h4>
               <p class="location">📍 {{ item.location }}</p>
               <p class="time">🕒 {{ item.time }}</p>
-              <div class="report-badge" :class="{ reported: item.isReport }">
-                {{ item.isReport ? '⚠️ 已举报' : '✓ 未举报' }}
+              <div class="report-badge" :class="{ reported: item.is_report === '是' }">
+                {{ item.is_report === '是' ? '⚠️ 已举报' : '✓ 未举报' }}
               </div>
               <div class="item-actions">
                 <el-button link type="primary" @click="openDetailDialog('found', item)">详情</el-button>
@@ -219,7 +221,8 @@
         <div class="item-grid">
           <div v-for="item in filteredTopApplyList" :key="item.id" class="item-card apply-card">
             <div class="item-image">
-              <el-image :src="item.pathName || defaultImage" fit="cover">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
                 <template #error><div class="image-placeholder">📷</div></template>
               </el-image>
             </div>
@@ -227,7 +230,6 @@
               <h4>{{ item.name }}</h4>
               <p class="location">📍 {{ item.location }}</p>
               <p class="time">🕒 {{ item.time }}</p>
-              <p class="publisher">👤 发布者：{{ item.username }}</p>
               <div class="item-actions">
                 <el-button link type="primary" @click="openDetailDialog('lost', item)">详情</el-button>
                 <el-button type="success" size="small" @click="approveTopApply(item)">同意置顶</el-button>
@@ -317,11 +319,6 @@
         <p><strong>描述：</strong>{{ detailItem.description }}</p>
         <p><strong>状态：</strong>{{ detailItem.status }}</p>
         <p><strong>联系电话：</strong>{{ detailItem.phone || '未提供' }}</p>
-        <p><strong>是否被举报：</strong>
-          <el-tag :type="detailItem.isReport ? 'danger' : 'success'" size="small">
-            {{ detailItem.isReport ? '已举报' : '未举报' }}
-          </el-tag>
-        </p>
         <p v-if="detailItem.reportReason"><strong>举报理由：</strong>{{ detailItem.reportReason }}</p>
         <p><strong>留言：</strong>{{ detailItem.note || '暂无' }}</p>
       </div>
@@ -335,76 +332,91 @@
         <el-button type="danger" @click="confirmDelete">确认删除</el-button>
       </template>
     </el-dialog>
+
+    <!-- 图片预览弹窗 -->
+    <el-dialog v-model="openImagePreview" title="图片预览" width="600px">
+      <div class="image-preview">
+        <img :src="previewimgurl" alt="预览图片" style="width: 100%" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, UserFilled, Search, TakeawayBox, Top, ChatDotRound, Lock, SwitchButton } from '@element-plus/icons-vue'
 import request from "@/utils/request.js";
 import router from "@/router/index.js";
 
+
+onMounted(async () => {
+  //初始化所有用户数据
+  try {
+    await request.get('/users').then(res => {
+      if(res.code === '200'){
+        userList.value = res.data
+      }else {
+        ElMessage.error('初始化用户数据失败')
+      }
+    })
+  }catch(error) {
+    console.log(error)
+    ElMessage.error('初始化用户数据失败')
+  }
+
+
+  //初始化列表，并将置顶物品添加到列表顶部
+
+  try {
+
+    await request.get('/losts/top').then(response => {
+      if(response.code === '200'){
+        topLostList.value= response.data
+        lostList.value=lostList.value.concat(topLostList.value)
+      }
+    })
+    await request.get('/losts').then(response => {
+      if(response.code === '200'){
+        lostList0.value = response.data
+        lostList.value=lostList.value.concat(lostList0.value)
+      }
+    })
+
+
+    await request.get('/founds').then(response => {
+      if(response.code === '200'){
+        foundList0.value= response.data
+        foundList.value = [...foundList0.value]
+      }
+    })
+
+  }catch(err) {
+    ElMessage.error('初始化失败')
+  }
+
+})
+
+
+
 // ==================== 管理员信息 ====================
 const adminInfo = ref(JSON.parse(localStorage.getItem('user')))
 
-// 宿舍相关
-const dormNumber = ref('')
-const currentDorm = ref('A栋101')
 
 // ==================== 模拟数据 ====================
 
 // 用户列表
-const userList = ref([
-  { id: 1, username: '张三', email: 'zhangsan@example.com', phone: '13800138001', avatar: '', status: 'active' },
-  { id: 2, username: '李四', email: 'lisi@example.com', phone: '13800138002', avatar: '', status: 'active' },
-  { id: 3, username: '王五', email: 'wangwu@example.com', phone: '13800138003', avatar: '', status: 'banned' },
-  { id: 4, username: '赵六', email: 'zhaoliu@example.com', phone: '13800138004', avatar: '', status: 'active' },
-  { id: 5, username: '小明', email: 'xiaoming@example.com', phone: '13800138005', avatar: '', status: 'banned' },
-])
+const userList = ref([])
 
+//暂存物品数据
+const topLostList=ref([])
+const lostList0=ref([])
+const foundList0=ref([])
 // 失物列表 - 新增 is_report, report_reason, need_top, username
-const lostList = ref([
-  {
-    id: 1, name: '笔记本电脑', location: '图书馆', time: '2025-03-01', pathName: '',
-    description: '银色MacBook Pro，15英寸', status: '寻找中', note: '请好心人联系', phone: '13800138001',
-    isReport: true, reportReason: '疑似虚假信息，图片与实际不符', need_top: '是', username: '张三'
-  },
-  {
-    id: 2, name: '校园卡', location: '二食堂', time: '2025-03-10', pathName: '',
-    description: '姓名：李四，学号2024001', status: '寻找中', note: '捡到请联系', phone: '13800138002',
-    isReport: false, reportReason: '', need_top: '否', username: '李四'
-  },
-  {
-    id: 3, name: '耳机', location: '健身房', time: '2025-03-15', pathName: '',
-    description: '白色AirPods Pro', status: '寻找中', note: '重要物品', phone: '13800138003',
-    isReport: true, reportReason: '重复发布', need_top: '是', username: '王五'
-  },
-  {
-    id: 4, name: '钱包', location: '教学楼', time: '2025-03-18', pathName: '',
-    description: '棕色皮质钱包', status: '寻找中', note: '', phone: '13800138004',
-    isReport: false, reportReason: '', need_top: '是', username: '赵六'
-  },
-])
+const lostList = ref([])
 
 // 拾取物列表 - 新增 is_report, report_reason
-const foundList = ref([
-  {
-    id: 1, name: '手机', location: '体育馆', time: '2025-03-05', pathName: '',
-    description: '黑色iPhone 14', status: '待认领', note: '请失主联系', phone: '13800138005',
-    isReport: false, reportReason: ''
-  },
-  {
-    id: 2, name: '钱包', location: '教学楼A座', time: '2025-03-12', pathName: '',
-    description: '棕色短款钱包，内有现金', status: '待认领', note: '', phone: '13800138006',
-    isReport: true, reportReason: '认领信息不完整', username: '小明'
-  },
-  {
-    id: 3, name: '水杯', location: '咖啡厅', time: '2025-03-14', pathName: '',
-    description: '黑色保温杯', status: '待认领', note: '', phone: '13800138007',
-    isReport: false, reportReason: ''
-  },
-])
+const foundList = ref([])
 
 // AI对话消息
 const aiMessages = ref([
@@ -415,6 +427,11 @@ const aiMessages = ref([
 const activeTab = ref('profile')
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 const defaultImage = 'https://via.placeholder.com/120'
+
+
+// 图片预览
+let openImagePreview = ref(false)
+let previewimgurl = ref('')
 
 // 用户筛选
 const userStatusFilter = ref('')
@@ -427,7 +444,7 @@ const filteredUserList = computed(() => {
 })
 
 // 失物筛选
-const lostFilters = ref({ search: '', location: '', isReport: '', sort: '' })
+const lostFilters = ref({ search: '', location: '', is_report: '', sort: '' })
 const filteredLostList = computed(() => {
   let list = [...lostList.value]
   if (lostFilters.value.search) {
@@ -436,8 +453,8 @@ const filteredLostList = computed(() => {
   if (lostFilters.value.location) {
     list = list.filter(i => i.location.includes(lostFilters.value.location))
   }
-  if (lostFilters.value.isReport !== '') {
-    list = list.filter(i => i.isReport === (lostFilters.value.isReport === 'true'))
+  if (lostFilters.value.is_report !== '') {
+    list = list.filter(i => i.is_report === (lostFilters.value.is_report))
   }
   if (lostFilters.value.sort === 'asc') {
     list.sort((a, b) => new Date(a.time) - new Date(b.time))
@@ -448,7 +465,7 @@ const filteredLostList = computed(() => {
 })
 
 // 拾取物筛选
-const foundFilters = ref({ search: '', location: '', isReport: '', sort: '' })
+const foundFilters = ref({ search: '', location: '', is_report: '', sort: '' })
 const filteredFoundList = computed(() => {
   let list = [...foundList.value]
   if (foundFilters.value.search) {
@@ -457,8 +474,8 @@ const filteredFoundList = computed(() => {
   if (foundFilters.value.location) {
     list = list.filter(i => i.location.includes(foundFilters.value.location))
   }
-  if (foundFilters.value.isReport !== '') {
-    list = list.filter(i => i.isReport === (foundFilters.value.isReport === 'true'))
+  if (foundFilters.value.is_report !== '') {
+    list = list.filter(i => i.is_report === (foundFilters.value.is_report))
   }
   if (foundFilters.value.sort === 'asc') {
     list.sort((a, b) => new Date(a.time) - new Date(b.time))
@@ -587,16 +604,40 @@ const changePassword = async () => {
 
 // ==================== 用户管理方法 ====================
 const toggleUserStatus = (user) => {
-  if (user.status === 'active') {
-    user.status = 'banned'
-    ElMessage.success(`用户 ${user.username} 已封禁`)
+  if (user.status === '正常') {
+    user.status = '封禁'
+    try {
+      request.put('/users/'+user.id+'/status').then(response => {
+        if(response.code === '200'){
+          ElMessage.success(`用户 ${user.username} 已封禁`)
+        }else {
+          ElMessage.error('封禁失败')
+        }
+      })
+    }catch (error) {
+      ElMessage.error('封禁失败')
+    }
   } else {
-    user.status = 'active'
-    ElMessage.success(`用户 ${user.username} 已解封`)
+    user.status = '正常'
+    try {
+      request.put('/users/'+user.id+'/status').then(response => {
+        if(response.code === '200'){
+          ElMessage.success(`用户 ${user.username} 已解封`)
+        }else {
+          ElMessage.error('解封失败')
+        }
+      })
+    }catch (error) {
+      ElMessage.error('解封失败')
+    }
   }
 }
 
 // ==================== 物品管理方法 ====================
+
+/*
+* 物品详情弹窗
+* */
 const detailDialogVisible = ref(false)
 const detailItem = ref(null)
 
@@ -605,6 +646,10 @@ const openDetailDialog = (type, row) => {
   detailDialogVisible.value = true
 }
 
+
+/*
+* 物品删除弹窗
+* */
 const deleteDialogVisible = ref(false)
 let deleteItemId = null
 let deleteItemType = null
@@ -620,13 +665,35 @@ const confirmDelete = () => {
     const index = lostList.value.findIndex(i => i.id === deleteItemId)
     if (index !== -1) {
       lostList.value.splice(index, 1)
-      ElMessage.success('失物已删除')
+      //删除失物信息
+      try {
+        request.delete('/losts/' + deleteItemId).then(response => {
+          if (response.code === '200') {
+            ElMessage.success('失物已删除')
+          } else {
+            ElMessage.error(response.msg || '删除失败')
+          }
+        })
+      } catch (error) {
+        ElMessage.error('删除失败')
+      }
+
     }
   } else if (deleteItemType === 'found') {
     const index = foundList.value.findIndex(i => i.id === deleteItemId)
     if (index !== -1) {
       foundList.value.splice(index, 1)
-      ElMessage.success('拾取物已删除')
+      try {
+        request.delete('/founds/' + deleteItemId).then(response => {
+          if (response.code === '200') {
+            ElMessage.success('拾取物已删除')
+          } else {
+            ElMessage.error(response.msg || '删除失败')
+          }
+        })
+      } catch (error) {
+        ElMessage.error('删除失败')
+      }
     }
   }
   deleteDialogVisible.value = false
@@ -634,8 +701,24 @@ const confirmDelete = () => {
 
 // ==================== 置顶申请方法 ====================
 const approveTopApply = (row) => {
-  row.need_top = '已同意'
-  ElMessage.success(`已同意物品"${row.name}"的置顶申请`)
+  const index = lostList0.value.findIndex(i => i.id === row.id)
+  row.need_top = '无'
+  row.is_top = '是'
+  if (index !== -1) {
+    lostList0.value.splice(index, 1)
+    topLostList.value.push(row)
+    try {
+      request.put('/losts/'+row.id+'/toTop').then(response => {
+        if(response.code === '200'){
+          ElMessage.success('置顶成功')
+        }else {
+          ElMessage.error('置顶失败')
+        }
+      })
+    }catch (error) {
+      ElMessage.error('置顶失败')
+    }
+  }
 }
 
 // ==================== AI对话方法 ====================

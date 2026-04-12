@@ -14,7 +14,7 @@ public class TopLost {
     private String description;
     private String pathName;
     private String status;
-    private String node;
+    private String note;
     private int l_id;
     private  String phone;
     private  String is_report;

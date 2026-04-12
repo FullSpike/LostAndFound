@@ -100,4 +100,23 @@ public class UserServiceImpl implements UserService {
     public User getUserInfo(int id) {
         return userMapper.selectById(id);
     }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userMapper.selectAll();
+    }
+
+    @Override
+    public void toggleUserStatus(int id) {
+        User user = userMapper.selectById(id);
+        if(user==null){
+            throw new ServiceException("用户不存在","400");
+        }
+        if(user.getStatus().equals("正常")){
+            user.setStatus("封禁");
+        }else{
+            user.setStatus("正常");
+        }
+        userMapper.update(id,user);
+    }
 }

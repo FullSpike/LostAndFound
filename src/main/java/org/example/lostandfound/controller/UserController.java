@@ -20,6 +20,12 @@ public class UserController {
     @Resource
     public UserService userService;
 
+
+    @GetMapping()
+    public Result<?> getAllUsers(){
+        return Result.success(userService.getAllUsers());
+    }
+
     @PostMapping()
     public Result<?> register(@Validated @RequestBody User user){
         userService.register(user);
@@ -64,6 +70,12 @@ public class UserController {
     @GetMapping("/{id}")
     public Result<?> getUserInfo(@PathVariable int id){
         return Result.success(userService.getUserInfo(id));
+    }
+
+    @PutMapping("/{id}/status")
+    public Result<?> toggleUserStatus(@PathVariable int id){
+        userService.toggleUserStatus(id);
+        return Result.success("状态更新成功");
     }
 
 }

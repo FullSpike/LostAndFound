@@ -89,6 +89,16 @@ public class LostController {
         return Result.success("修改成功");
     }
 
+    /*
+    * 置顶物品
+    * */
+    @PutMapping("/{id}/toTop")
+    public Result<?> toTopLost(@PathVariable("id") int id){
+        lostService.toTopLost(id);
+        return Result.success("置顶成功");
+    }
+
+
 
 
 }

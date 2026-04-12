@@ -18,7 +18,9 @@
     <update id="updateLost">
         update lost set name=#{lost.name},location=#{lost.location},time=#{lost.time},
                 description=#{lost.description},
-                status=#{lost.status},note=#{lost.note},phone=#{lost.phone}
+                status=#{lost.status},note=#{lost.note},phone=#{lost.phone},
+                is_report=#{lost.is_report},report_reason=#{lost.report_reason},
+                need_top=#{lost.need_top},is_top=#{lost.is_top}
         where id=#{id}
     </update>
 </mapper>

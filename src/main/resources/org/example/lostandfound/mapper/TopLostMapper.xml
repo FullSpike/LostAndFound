@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.lostandfound.mapper.TopLostMapper">
+
+
+    <insert id="toTopLost">
+        insert into toplost(name,location,time,description,pathName,status,note,l_id,phone,is_report,report_reason)
+        values (
+                #{lost.name},#{lost.location},
+                #{lost.time},#{lost.description},
+                #{lost.pathName},#{lost.status},
+                #{lost.note},#{lost.l_id},
+                #{lost.phone},#{lost.is_report},#{lost.report_reason})
+
+    </insert>
+</mapper>

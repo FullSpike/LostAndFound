@@ -420,18 +420,20 @@ onMounted(async () => {
   let lostList=([])
   let foundList=([])
   try {
-    await request.get('/losts').then(response => {
-      if(response.code === '200'){
-        lostList = response.data
-        allLostList.value=allLostList.value.concat(lostList)
-      }
-    })
+
     await request.get('/losts/top').then(response => {
       if(response.code === '200'){
         topLostList= response.data
         allLostList.value=allLostList.value.concat(topLostList)
       }
     })
+    await request.get('/losts').then(response => {
+      if(response.code === '200'){
+        lostList = response.data
+        allLostList.value=allLostList.value.concat(lostList)
+      }
+    })
+
 
     await request.get('/founds').then(response => {
       if(response.code === '200'){

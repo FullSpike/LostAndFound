@@ -10,7 +10,13 @@
     </insert>
 
     <update id="update">
-        update user set username=#{user.username},email=#{user.email},phone=#{user.phone},password=#{user.password} where id=#{id}
+        update user set
+                username=#{user.username},
+                email=#{user.email},
+                phone=#{user.phone},
+                password=#{user.password},
+                status=#{user.status}
+                    where id=#{id}
     </update>
 
     <select id="selectByUsername" resultType="org.example.lostandfound.pojo.User">

@@ -21,4 +21,6 @@ public interface LostService {
     void deleteLost(int id);
 
     void updateLost(int id, Lost lost);
+
+    void toTopLost(int id);
 }

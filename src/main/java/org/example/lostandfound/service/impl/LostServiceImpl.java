@@ -6,6 +6,7 @@ import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import org.example.lostandfound.exception.ServiceException;
 import org.example.lostandfound.mapper.LostMapper;
+import org.example.lostandfound.mapper.TopLostMapper;
 import org.example.lostandfound.pojo.Lost;
 import org.example.lostandfound.service.LostService;
 import org.example.lostandfound.utils.AiUtil;
@@ -102,6 +103,17 @@ public class LostServiceImpl implements LostService {
         if(lostMapper.selectById(id) == null){
             throw new ServiceException("物品不存在","401");
         }
+        lostMapper.updateLost(id,lost);
+    }
+
+    @Override
+    public void toTopLost(int id) {
+        Lost lost=lostMapper.selectById(id);
+        if(lost == null){
+            throw new ServiceException("物品不存在","401");
+        }
+        lost.setNeed_top("无");
+        lost.setIs_top("是");
         lostMapper.updateLost(id,lost);
     }
 }

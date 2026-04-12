@@ -29,4 +29,7 @@ public interface UserMapper {
 
     @Select("select * from user where id != #{id}")
     List<User> selectChatUsers( @Param("id") int id);
+
+    @Select("select * from user")
+    List<User> selectAll();
 }
