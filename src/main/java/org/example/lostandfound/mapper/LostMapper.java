@@ -11,8 +11,11 @@ import java.util.List;
 public interface LostMapper {
     void addLost(@Param("lost") Lost lost,@Param("pathName") String pathName);
 
+    @Select("select * from lost")
+    List<Lost> getAllLostList();
+
     @Select("select * from lost where is_top is null")
-       List<Lost> getLostList();
+   List<Lost> getLostList();
 
     @Select("select * from lost where is_top = '是'")
     List<Lost> getTopLostList();

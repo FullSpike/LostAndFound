@@ -395,6 +395,20 @@ onMounted(async () => {
     ElMessage.error('初始化失败')
   }
 
+  //刷新AI对话消息
+  try {
+    await request.get('/aiMessages/'+adminInfo.value.id).then(response => {
+      if(response.code === '200'){
+        aiMessages.value = response.data
+      }else {
+        ElMessage.error('刷新AI对话消息失败')
+      }
+    })
+  }catch(error) {
+    console.log(error)
+    ElMessage.error('刷新AI对话消息失败')
+  }
+
 })
 
 
@@ -419,9 +433,7 @@ const lostList = ref([])
 const foundList = ref([])
 
 // AI对话消息
-const aiMessages = ref([
-  { role: 'ai', content: '你好！我是AI助手，有什么可以帮助你的吗？' }
-])
+const aiMessages = ref([])
 
 // ==================== UI状态 ====================
 const activeTab = ref('profile')
@@ -726,27 +738,24 @@ const aiInput = ref('')
 const aiLoading = ref(false)
 const chatMessagesRef = ref(null)
 
-const getAIResponse = (userMessage) => {
-  const msg = userMessage.toLowerCase()
-  if (msg.includes('你好') || msg.includes('嗨')) {
-    return '你好！我是管理助手，很高兴为你服务。'
+const getAIResponse = async (userMessage) => {
+  //发出请求，获得ai的回复
+
+  const params = new URLSearchParams()
+  params.append('userMessage',userMessage)
+
+  try {
+    const response = await request.post('/aiMessages/'+adminInfo.value.id,params)
+    if(response.code === '200'){
+      return response.data
+    }else {
+      ElMessage.error(response.msg||'获取AI回复失败')
+    }
+  }catch (error) {
+    ElMessage.error('获取AI回复失败')
+    return ''
   }
-  if (msg.includes('失物') || msg.includes('丢失')) {
-    return '你可以在失物管理页面查看所有失物信息，包括是否被举报、举报理由等，也可以对失物进行删除操作。'
-  }
-  if (msg.includes('拾取') || msg.includes('拾物')) {
-    return '拾取物管理页面显示了所有拾取物品，你可以查看详情（包含举报理由）或删除物品。'
-  }
-  if (msg.includes('用户') || msg.includes('封禁')) {
-    return '用户管理页面可以查看所有注册用户，并对其执行封禁或解封操作。'
-  }
-  if (msg.includes('置顶')) {
-    return '失物置顶申请页面显示了所有申请置顶的失物，你可以查看详情并同意合理的置顶申请。'
-  }
-  if (msg.includes('举报')) {
-    return '被举报的物品会在列表中显示"已举报"标签，点击详情可以查看具体的举报理由，方便你进行审核。'
-  }
-  return '收到你的消息。你可以问我关于用户管理、失物管理、拾取物管理、置顶申请等方面的问题。'
+
 }
 
 const sendAIMessage = async () => {
@@ -758,8 +767,8 @@ const sendAIMessage = async () => {
 
   aiLoading.value = true
 
-  setTimeout(() => {
-    const aiResponse = getAIResponse(userMessage)
+  setTimeout(async () => {
+    const aiResponse = await getAIResponse(userMessage)
     aiMessages.value.push({ role: 'ai', content: aiResponse })
     aiLoading.value = false
 
