@@ -45,7 +45,7 @@ public class AiMessageServiceImpl implements AiMessageService {
         userMessageObj.setTime(LocalDateTime.now().toString());
         aiMessageMapper.insert(userMessageObj);
 
-        //获取丢失和拾取物的信息
+        /*//获取丢失和拾取物的信息
         List<Lost> lostList = lostMapper.getAllLostList();
         List<Found> foundList = foundMapper.getFoundList();
 
@@ -76,17 +76,21 @@ public class AiMessageServiceImpl implements AiMessageService {
             String str="有"+v+"个拾取物叫做"+k;
             foundDescriptionBuilder.append(str);
             foundDescriptionBuilder.append("\n");
-        });
+        });*/
 
-
+        List<Lost> lostList = lostMapper.getAllLostList();
+        List<Found> foundList = foundMapper.getFoundList();
+        String context = "有以下失物信息（lost（）就是一个失物，里面的数据就是一个失物的信息）"+
+                lostList.toString()+"\n"+
+                "有以下拾取物信息（found（）就是一个拾取物，里面的数据就是一个拾取物的信息）"+
+                foundList.toString();
 
 
         //调用aiutil获取ai的信息
         String description="你是一个失物和拾取物招领的ai助手，有以下已知条件："+
-                lostDescriptionBuilder+
-                foundDescriptionBuilder+
+                context+
                 "请回答问题"+userMessage+
-                "在30字以内";
+                "在30字以内，回答不需要解析";
         String aiMessage = AiUtil.getAiResponse(description);
 
         //把ai的信息存进数据库

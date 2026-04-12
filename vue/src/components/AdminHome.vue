@@ -395,6 +395,7 @@ onMounted(async () => {
     ElMessage.error('初始化失败')
   }
 
+  //可以不需要刷新
   //刷新AI对话消息
   try {
     await request.get('/aiMessages/'+adminInfo.value.id).then(response => {
