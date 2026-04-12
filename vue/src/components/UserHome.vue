@@ -1032,8 +1032,16 @@ const changePassword = async () => {
     ElMessage.error('请输入新密码')
     return
   }
+
   if (pwdForm.value.newPwd !== pwdForm.value.confirmPwd) {
     ElMessage.error('两次密码不一致')
+    return
+  }
+
+  // 密码确认验证
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$/
+  if (!passwordRegex.test(pwdForm.value.newPwd)) {
+    ElMessage.error('密码必须包含字母和数字，且长度在6-20位之间')
     return
   }
 

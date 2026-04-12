@@ -2,6 +2,7 @@ package org.example.lostandfound.controller;
 
 
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.Pattern;
 import org.example.lostandfound.common.Result;
 import org.example.lostandfound.pojo.User;
 import org.example.lostandfound.service.UserService;
@@ -44,7 +45,7 @@ public class UserController {
 
     @PutMapping("/{id}/password")
     public Result<?> updatePassword(@PathVariable int id,
-                                   @RequestParam("password") String password){
+                                    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$") String password){
         userService.updatePassword(id,password);
         return Result.success("密码更新成功");
     }

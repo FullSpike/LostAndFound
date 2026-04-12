@@ -59,9 +59,11 @@
         <div class="profile-card">
           <div class="profile-avatar">
             <el-avatar :size="100" :src="adminInfo.avatar || defaultAvatar" />
-            <el-upload action="#" :auto-upload="false" :show-file-list="false" :on-change="handleAvatarChange">
-              <el-button type="text" class="change-avatar-btn">更换头像</el-button>
-            </el-upload>
+            <el-form-item label="更改头像">
+
+              <input type="file" @change="handleAvatarChange" accept="image/*" />
+              <el-button type="primary" @click="uploadAvatar">上传</el-button>
+            </el-form-item>
           </div>
           <div class="profile-info">
             <div class="info-row"><span class="label">管理员ID</span><span class="value">{{ adminInfo.id }}</span></div>
@@ -340,6 +342,8 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, UserFilled, Search, TakeawayBox, Top, ChatDotRound, Lock, SwitchButton } from '@element-plus/icons-vue'
+import request from "@/utils/request.js";
+import router from "@/router/index.js";
 
 // ==================== 管理员信息 ====================
 const adminInfo = ref(JSON.parse(localStorage.getItem('user')))
@@ -504,9 +508,29 @@ const saveAdminInfo = () => {
   editAdminDialogVisible.value = false
 }
 
-const handleAvatarChange = (file) => {
-  adminInfo.value.avatar = URL.createObjectURL(file.raw)
-  ElMessage.success('头像已更新')
+
+const avatarFile = ref(null)
+
+const handleAvatarChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    avatarFile.value = file
+  }
+}
+
+const uploadAvatar = () => {
+  const formData = new FormData()
+  formData.append('avatar',avatarFile.value)
+  request.put('/admins/'+adminInfo.value.id+'/avatar',formData).then(response => {
+    if(response.code === '200'){
+      ElMessage.success('头像已更新')
+      adminInfo.value.avatar=response.data
+    }else {
+      ElMessage.error(response.msg||'头像更新失败')
+    }
+  }).catch(error => {
+    ElMessage.error('网络错误')
+  })
 }
 
 // 修改密码
@@ -518,25 +542,48 @@ const openChangePasswordDialog = () => {
   changePwdDialogVisible.value = true
 }
 
-const changePassword = () => {
+const changePassword = async () => {
+  const params1 = new URLSearchParams()
+  params1.append('password',pwdForm.value.oldPwd)
+  const response0 = await request.post('/admins/'+adminInfo.value.id+'/password',params1)
+  if(response0.code !== '200'){
+    ElMessage.error(response0.msg||'旧密码错误')
+    return
+  }
+
+  if(!pwdForm.value.newPwd || !pwdForm.value.confirmPwd){
+    ElMessage.error('请输入新密码')
+    return
+  }
   if (pwdForm.value.newPwd !== pwdForm.value.confirmPwd) {
     ElMessage.error('两次密码不一致')
     return
   }
-  ElMessage.success('密码修改成功')
+
+  // 密码确认验证
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$/
+  if (!passwordRegex.test(pwdForm.value.newPwd)) {
+    ElMessage.error('密码必须包含字母和数字，且长度在6-20位之间')
+    return
+  }
+
+  const params = new URLSearchParams()
+  params.append('password',pwdForm.value.newPwd)
+  const response = await request.put('/admins/'+adminInfo.value.id+'/password',params)
+  if(response.code === '200'){
+    ElMessage.success('密码修改成功')
+  }else {
+    ElMessage.error(response.msg||'密码修改失败')
+  }
+
+
+
+
+
   changePwdDialogVisible.value = false
 }
 
-// 宿舍绑定
-const bindDorm = () => {
-  if (dormNumber.value) {
-    currentDorm.value = dormNumber.value
-    ElMessage.success(`宿舍已绑定：${dormNumber.value}`)
-    dormNumber.value = ''
-  } else {
-    ElMessage.warning('请输入房间号')
-  }
-}
+
 
 // ==================== 用户管理方法 ====================
 const toggleUserStatus = (user) => {
@@ -644,7 +691,10 @@ const sendAIMessage = async () => {
 
 // ==================== 退出登录 ====================
 const handleLogout = () => {
+  router.push('/Login')
   ElMessage.success('已退出登录')
+  localStorage.removeItem('user')
+  localStorage.removeItem('token')
 }
 </script>
 

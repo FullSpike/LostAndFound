@@ -81,7 +81,12 @@ export default {
         ElMessage.error('请输入正确的11位手机号码')
         return
       }
-
+      // 密码确认验证
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$/
+      if (!passwordRegex.test(this.form.password)) {
+        ElMessage.error('密码必须包含字母和数字，且长度在6-20位之间')
+        return
+      }
       //开始注册
       if(this.form.userType === 'user') {
         // 注册用户

@@ -8,6 +8,8 @@ import org.example.lostandfound.utils.Md5Util;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.sound.midi.Soundbank;
+
 
 @SpringBootTest
 class LostAndFoundApplicationTests {
@@ -36,6 +38,11 @@ class LostAndFoundApplicationTests {
             System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Test
+    void testAdminMapper(){
+        System.out.println("d3c34167d779daec416992df63d99c1f".equals(Md5Util.getMD5String("AB261216")));;
     }
 
 }

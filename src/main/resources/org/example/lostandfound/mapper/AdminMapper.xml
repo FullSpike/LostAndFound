@@ -9,6 +9,15 @@
         values (#{admin.username},#{admin.password},#{admin.email},#{admin.phone})
     </insert>
 
+    <update id="update">
+        update admin
+        set username=#{admin.username},
+            password=#{admin.password},
+            email=#{admin.email},
+            phone=#{admin.phone}
+        where id=#{id}
+    </update>
+
     <select id="selectByEmail" resultType="org.example.lostandfound.pojo.Admin">
         select * from admin where email=#{email}
     </select>
