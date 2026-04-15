@@ -33,6 +33,10 @@
           <el-icon><Plus /></el-icon>
           <span>发布物品</span>
         </div>
+        <div class="nav-item" :class="{ active: activeTab === 'myClaim' }" @click="activeTab = 'myClaim'">
+          <el-icon><Collection /></el-icon>
+          <span>给我的认领申请</span>
+        </div>
         <div class="nav-item" :class="{ active: activeTab === 'messages' }" @click="activeTab = 'messages'">
           <el-icon><Message /></el-icon>
           <span>消息中心</span>
@@ -144,6 +148,7 @@
                 <el-button link type="primary" @click="openDetailDialog('found', item)">详情</el-button>
                 <el-button link type="warning" @click="openReportDialog('found',item)">举报</el-button>
                 <el-button link type="success" @click="openNoteDialog('found', item)">留言</el-button>
+                <el-button link type="success" @click="openClaimApplyDialog( item)">认领</el-button>
               </div>
             </div>
           </div>
@@ -298,6 +303,35 @@
           </div>
         </div>
       </div>
+
+<!--      我的认领 -->
+      <div v-if="activeTab === 'myClaim'" class="content-panel">
+        <div class="panel-header">
+          <h2>给我的认领申请</h2>
+        </div>
+        <div class="item-grid">
+          <div v-for="item in myClaimList" :key="item.id" class="item-card">
+            <div class="item-image">
+              <el-image :src="item.pathName || defaultImage" fit="cover"
+                        @click="openImagePreview=true,previewimgurl=item.pathName || defaultImage">
+                <template #error><div class="image-placeholder">📷</div></template>
+              </el-image>
+            </div>
+            <div class="item-info">
+              <h4>申请人：{{ item.sender }}</h4>
+              <h3>物品名称：{{ item.name }}</h3>
+              <h3>检验：{{ item.reason }}</h3>
+              <p class="location">📍 {{ item.location }}</p>
+              <p class="time">🕒 {{ item.time }}</p>
+              <div class="item-actions">
+                <el-button link type="primary" @click="submitClaim(item)">同意</el-button>
+                <el-button link type="danger" @click="rejectClaim(item)">拒绝</el-button>
+                <el-button link type="warning" @click="requireReasonClaim(item)">要求补充理由</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- 弹窗区域 -->
@@ -334,6 +368,16 @@
         <p><strong>联系电话：</strong>{{ detailItem.phone || '未提供' }}</p>
         <p><strong>留言：</strong>{{ detailItem.note || '暂无' }}</p>
       </div>
+    </el-dialog>
+
+    <!-- 认领物品弹窗 -->
+    <el-dialog v-model="claimApplyDialogVisible" title="认领物品" width="400px">
+      <el-input v-model="claimApplyForm" type="textarea" rows="4" placeholder="请输入校验物品属性" />
+      <template #footer>
+        <el-button @click="claimApplyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitClaimApply">提交</el-button>
+      </template>
+
     </el-dialog>
 
     <el-dialog v-model="noteDialogVisible" title="留言" width="400px">
@@ -420,7 +464,6 @@ onMounted(async () => {
   let lostList=([])
   let foundList=([])
   try {
-
     await request.get('/losts/top').then(response => {
       if(response.code === '200'){
         topLostList= response.data
@@ -484,11 +527,17 @@ onMounted(async () => {
 
   //初始化消息列表
   let myMessageList = ([])
+  let msgs=([])
 
   try {
     await request.get('/messages/'+userId).then(response => {
       if(response.code === '200'){
         myMessageList= response.data
+      }
+    })
+    await request.get('/claims/'+userId+'/message').then(response => {
+      if(response.code === '200'){
+        msgs= response.data
       }
     })
   }catch(error) {
@@ -502,8 +551,26 @@ onMounted(async () => {
           content:'您有消息来自_'+msg.username+'_未读，请查收'
         })
       }
-
    }
+
+   msgs.forEach((msg)=>{
+    if(msg.is_check === '是'){
+      messageList.value.push({
+        id:unreadCount.value++,
+        content:'您向物品'+msg.name+'的认领申请已同意，请与'+msg.receiver+'联系确认'
+      })
+    }else if(msg.is_check === '否'){
+      messageList.value.push({
+        id:unreadCount.value++,
+        content:'您向物品'+msg.name+'的认领申请已拒绝，您已无法再次申请'
+      })
+    }else if(msg.is_check === '补'){
+      messageList.value.push({
+        id:unreadCount.value++,
+        content:'您向物品'+msg.name+'的认领申请需要补充理由，请重新申请'
+      })
+    }
+   })
 
   myLostList.value.forEach((item,index)=>{
     if(item.note){
@@ -522,6 +589,16 @@ onMounted(async () => {
     }
   })
 
+  //初始化我的认领列表
+  try {
+    await request.get('/claims/'+userId).then(response => {
+      if(response.code === '200'){
+        myClaimList.value= response.data
+      }
+    })
+  }catch(error) {
+    ElMessage.error('初始化失败')
+    }
 
 
 })
@@ -530,6 +607,10 @@ onMounted(async () => {
 
 let openImagePreview = ref(false)
 let previewimgurl = ref('')
+
+// 我的认领列表
+const myClaimList = ref([])
+
 
 // 用户信息
 const userInfo = ref(JSON.parse(localStorage.getItem('user')))
@@ -716,6 +797,125 @@ const openDetailDialog = (type, row) => {
   detailItem.value = row
   detailDialogVisible.value = true
 }
+
+//认领物品
+const claimApplyDialogVisible = ref(false)
+let claimItem = null
+const claimApplyForm = ref('')
+
+const openClaimApplyDialog = async (item) => {
+  claimItem = item
+  let msg=null
+  if(claimItem.f_id === userInfo.value.id){
+    ElMessage.error('您不能认领自己的物品')
+    return
+  }
+  try {
+    const response = await request.get('/claims/'+userInfo.value.id+'/'+claimItem.f_id+'/'+claimItem.id)
+      if(response.code === '200'){
+        msg=response.data
+      }
+
+  }catch(error) {
+    ElMessage.error('网络出错')
+  }
+  if(msg.is_check === '是'){
+    ElMessage.error('该物品已您被认领，请与'+msg.receiver+'联系')
+  }else if(msg.is_check === '否'){
+    ElMessage.error('您被拒绝认领该物品')
+  }else{
+    claimApplyDialogVisible.value = true
+    claimApplyForm.value = ''
+  }
+
+
+}
+
+const submitClaimApply =() => {
+  if(!claimItem) {
+    ElMessage.error('请选择物品')
+    return
+  }
+  try {
+    const params = new URLSearchParams()
+    params.append('reason',claimApplyForm.value)
+    request.post('/claims/'+userInfo.value.id+'/'+claimItem.f_id+'/'+claimItem.id,params).then(response => {
+      if(response.code === '200'){
+        ElMessage.success('认领成功')
+      }else {
+        ElMessage.error(response.msg||'认领失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('认领失败')
+  }
+  claimApplyDialogVisible.value = false
+}
+
+
+
+// 同意认领
+const submitClaim = (item) => {
+  if(!item) {
+    ElMessage.error('请选择物品')
+    return
+  }
+  myClaimList.value = myClaimList.value.filter(item0 => item.id !== item0.id)
+  try {
+    request.put('/claims/'+item.id+'/agree').then(response => {
+      if(response.code === '200'){
+        ElMessage.success('同意认领成功')
+      }else {
+        ElMessage.error(response.msg||'同意认领失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('同意认领失败')
+  }
+}
+
+//拒绝认领
+const rejectClaim = (item) => {
+  if(!item) {
+    ElMessage.error('请选择物品')
+    return
+  }
+  myClaimList.value = myClaimList.value.filter(item0 => item.id !== item0.id)
+  try {
+    request.put('/claims/'+item.id+'/reject').then(response => {
+      if(response.code === '200'){
+        ElMessage.success('拒绝认领成功')
+      }else {
+        ElMessage.error(response.msg||'拒绝认领失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('拒绝认领失败')
+  }
+}
+
+
+//要求补充理由
+const requireReasonClaim = (item) => {
+  if (!item) {
+    ElMessage.error('请选择物品')
+    return
+  }
+  myClaimList.value = myClaimList.value.filter(item0 => item.id !== item0.id)
+  try {
+    request.put('/claims/'+item.id+'/requireReason').then(response => {
+      if(response.code === '200'){
+        ElMessage.success('要求补充理由成功')
+      }else {
+        ElMessage.error(response.msg||'要求补充理由失败')
+      }
+    })
+  }catch(error) {
+    ElMessage.error('要求补充理由失败')
+  }
+}
+
+
 
 
 // 留言物品弹窗

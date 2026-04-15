@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.lostandfound.mapper.ClaimMapper">
+    <insert id="insert" parameterType="org.example.lostandfound.pojo.Claim">
+        insert into claim (senderId,receiverId,sender,receiver,reason,c_id)
+        values (#{claim.senderId},#{claim.receiverId},
+                #{claim.sender},#{claim.receiver},
+                #{claim.reason},#{claim.c_id})
+    </insert>
+
+
+    <update id="updateById" parameterType="org.example.lostandfound.pojo.Claim">
+        update claim set is_check=#{claim.is_check}
+                     ,senderId=#{claim.senderId}
+                     ,receiverId=#{claim.receiverId}
+                     ,sender=#{claim.sender}
+                     ,receiver=#{claim.receiver}
+                     ,reason=#{claim.reason}
+                     ,c_id=#{claim.c_id}
+                     where id=#{claim.id}
+    </update>
+
+    <select id="selectByUserIdCid" resultType="java.util.Map">
+        select claim.*,found.name,found.time,found.location,found.pathName
+        from claim,found
+        where claim.c_id=#{c_id} and claim.senderId=#{senderId}
+                              and claim.receiverId=#{receiverId}
+                              and found.id=#{c_id}
+    </select>
+
+
+    <select id="selectByReceiverId" resultType="java.util.Map">
+        select claim.*,found.name,found.time,found.location,found.pathName
+        from claim,found
+        where claim.receiverId=#{receiverId}
+            and claim.c_id = found.id
+            and claim.is_check is null
+    </select>
+    <select id="selectByReceiverIdSenderId" resultType="org.example.lostandfound.pojo.Claim">
+        select * from claim where senderId=#{senderId} and receiverId=#{receiverId}
+    </select>
+
+
+</mapper>
