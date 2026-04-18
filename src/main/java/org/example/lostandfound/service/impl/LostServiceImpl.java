@@ -12,6 +12,10 @@ import org.example.lostandfound.service.LostService;
 import org.example.lostandfound.utils.AiUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +33,9 @@ public class LostServiceImpl implements LostService {
 
     @Autowired
     private LostMapper lostMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public void addLost(Lost lost, MultipartFile file) {
@@ -63,11 +70,13 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @Cacheable(cacheNames = "lostList", unless="#result==null")
     public List<Lost> getLostList() {
         return lostMapper.getLostList();
     }
 
     @Override
+    @Cacheable(cacheNames = "topLostList", unless="#result==null")
     public List<Lost> getTopLostList() {
         return lostMapper.getTopLostList();
     }
@@ -78,11 +87,13 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
     public void reportLost(int id, String reportReason) {
         lostMapper.reportLost(id,"是",reportReason);
     }
 
     @Override
+    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
     public void noteLost(int id, String note) {
         if(note.isEmpty()){
             throw new ServiceException("留言不能为空","401");
@@ -91,6 +102,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
     public void deleteLost(int id) {
         if(lostMapper.selectById(id) == null){
             throw new ServiceException("物品不存在","401");
@@ -99,6 +111,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
     public void updateLost(int id, Lost lost) {
         if(lostMapper.selectById(id) == null){
             throw new ServiceException("物品不存在","401");
@@ -107,6 +120,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
     public void toTopLost(int id) {
         Lost lost=lostMapper.selectById(id);
         if(lost == null){

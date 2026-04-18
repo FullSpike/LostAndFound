@@ -11,6 +11,8 @@ import org.example.lostandfound.service.FoundService;
 import org.example.lostandfound.utils.AiUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -60,6 +62,7 @@ public class FoundServiceImpl implements FoundService {
     }
 
     @Override
+    @Cacheable(cacheNames = "foundList", unless="#result==null")
     public List<Found> getFoundList() {
         return foundMapper.getFoundList();
     }
@@ -70,6 +73,7 @@ public class FoundServiceImpl implements FoundService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "foundList",allEntries = true)
     public void noteFound(int id, String note) {
         if(note.isEmpty()){
             throw new ServiceException("留言内容不能为空","401");
@@ -78,6 +82,7 @@ public class FoundServiceImpl implements FoundService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "foundList",allEntries = true)
     public void reportFound(int id, String reportReason) {
         if(reportReason.isEmpty()){
             throw new ServiceException("举报原因不能为空","401");
@@ -86,6 +91,7 @@ public class FoundServiceImpl implements FoundService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "foundList",allEntries = true)
     public void deleteFound(int id) {
         if(foundMapper.selectById(id)==null){
             throw new ServiceException("物品不存在","401");
@@ -94,6 +100,7 @@ public class FoundServiceImpl implements FoundService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "foundList",allEntries = true)
     public void updateFound(int id, Found found) {
         if(foundMapper.selectById(id)==null){
             throw new ServiceException("物品不存在","401");
