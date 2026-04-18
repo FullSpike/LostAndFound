@@ -82,18 +82,19 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
+    @Cacheable(cacheNames = "myLostList", key="#l_id", unless="#result==null")
     public List<Lost> getMyLostList(int l_id) {
         return lostMapper.getMyLostList(l_id);
     }
 
     @Override
-    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
+    @CacheEvict(cacheNames = {"lostList","topLostList","myLostList"},allEntries = true)
     public void reportLost(int id, String reportReason) {
         lostMapper.reportLost(id,"是",reportReason);
     }
 
     @Override
-    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
+    @CacheEvict(cacheNames = {"lostList","topLostList","myLostList"},allEntries = true)
     public void noteLost(int id, String note) {
         if(note.isEmpty()){
             throw new ServiceException("留言不能为空","401");
@@ -102,7 +103,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
-    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
+    @CacheEvict(cacheNames = {"lostList","topLostList","myLostList"},allEntries = true)
     public void deleteLost(int id) {
         if(lostMapper.selectById(id) == null){
             throw new ServiceException("物品不存在","401");
@@ -111,7 +112,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
-    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
+    @CacheEvict(cacheNames = {"lostList","topLostList","myLostList"},allEntries = true)
     public void updateLost(int id, Lost lost) {
         if(lostMapper.selectById(id) == null){
             throw new ServiceException("物品不存在","401");
@@ -120,7 +121,7 @@ public class LostServiceImpl implements LostService {
     }
 
     @Override
-    @CacheEvict(cacheNames = {"lostList","topLostList"},allEntries = true)
+    @CacheEvict(cacheNames = {"lostList","topLostList","myLostList"},allEntries = true)
     public void toTopLost(int id) {
         Lost lost=lostMapper.selectById(id);
         if(lost == null){
